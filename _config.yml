@@ -9,7 +9,7 @@ description: >
 version:          1.0
 gitbook_version:  3.2.3
 
-url:              'https://myeongjae-kim.github.io'
+url:              'https://books.myeongjae.kim'
 baseurl:          '/nodejs-tutorial'
 rss:              RSS
 
