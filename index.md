@@ -2,78 +2,72 @@
 layout: home
 ---
 
-Make Jelly site have a GitBook look!
+> ...
+> 
+> 나는 수많은 앱을 만들었다. 수많은 시스템을 구축했다. 그리고 이 모두를 경험하고 고민한 끝에 놀라운 무언가를 깨달았다.
+> 
+> 아키텍처 규칙은 동일하다!
+> 
+> 이 사실이 놀라운 이유는 내가 지금까지 구축한 시스템들이 근본적으로 정말 다르기 때문이다. 이토록 다양한 시스템이 왜 비슷한 아키텍처 규칙을 공유하는 걸까? 나는 소프트웨어 아키텍처의 규칙은 다른 모든 변수에 독립적이라는 결론을 내렸다.
+> 
+> \- 로버트 C. 마틴, 송준의. 클린 아키텍처. 서울: 인사이트, 2019. page: 서문xx
 
-## Demo
+## 하나로 꿰뚫는다.
 
-Live demo on Github Pages: [https://sighingnow.github.io/jekyll-gitbook](https://sighingnow.github.io/jekyll-gitbook)
+안녕하세요, 김명재입니다. 저는 로버트 마틴만큼 다양한 애플리케이션은 만들어보지 않았지만, *아키텍처 규칙은 동일하다!*는 마틴씨의 깨달음이 무엇을 말하는지는 어느정도 이해하고 있습니다.
 
-[![Jekyll Themes](https://img.shields.io/badge/featured%20on-JekyllThemes-red.svg)](https://jekyll-themes.com/jekyll-gitbook/)
+애플리케이션의 크기가 조금만 커져도 의존성 관리의 필요성이 급격하게 증가합니다. 코드레벨에서의 함수나 클래스 의존은 물론 애플리케이션끼리의 의존 관계까지, 결국 의존성을 얼마나 잘 관리하는지가 시스템의 유지보수의 비용을 결정합니다.
 
-## Why Jekyll with GitBook
+대규모 애플리케이션을 위한 아키텍처는 필연적으로 플러그인 아키텍처를 가집니다. 어떤 기능을 의존해야 할 때 그 기능에 대한 구현체를 직접 의존하지 않고 인터페이스를 의존해 꼽아넣을(plugin) 수 있는 구멍을 만듭니다.
 
-GitBook is an amazing frontend style to present and organize contents (such as book chapters
-and blogs) on Web. The typical to deploy GitBook at [Github Pages][1]
-is building HTML files locally and then push to Github repository, usually to the `gh-pages`
-branch. It's quite annoying to repeat such workload and make it hard for people do version
-control via git for when there are generated HTML files to be staged in and out.
+인터페이스가 많아질수록 아키텍처가 유연해지는 대신 런타임에 구현체들이 실제로 어떻게 의존하는지 파악하기 어려워집니다. 무조건 플러그인 아키텍처를 사용하는게 답은 아닙니다. 코드의 양에 따른 적절한 아키텍처를 선택하는 것이 가장 중요합니다.
 
-This theme takes style definition out of generated GitBook site and provided the template
-for Jekyll to rendering markdown documents to HTML, thus the whole site can be deployed
-to [Github Pages][1] without generating and uploading HTML bundle every time when there are
-changes to the original repo.
+> 사실 가장 큰 실수는 과도한 아키텍처였다. 이 책에서 설명한 계층보다 훨씬 많은 계층이 있었고, 각 계층은 자신만의 독특한 통신 오버헤드를 발생시켰다. 이로 인해 팀 생산성은 급격하게 떨어졌다.
+>
+> 실제로 수많은 인력이 몇 년에 걸쳐 엄청난 노력을 기울여서 반응이 미지근한 출시를 두 차례를 했지만, 결국 도구 전체는 폐기되었고, 위스콘신Wisconsin에 위치한 작은 팀에서 작성한 작고 앙증맞은 애플리케이션으로 대체되었다.
+>
+> 이를 통해 나는 아키텍처가 뛰어나더라도 커다란 실패로 끝날 때도 있다는 사실을 배웠다. 아키텍처는 반드시 문제의 규모에 적합할 정도만큼만 유연해야 한다. 작고 앙증맞은 데스크톱 도구만 있으면 충분한 상황에서 엔터프라이즈급 아키텍처를 설계하는 일은 실패로 가는 지름길이다.
+> 
+> \- 로버트 C. 마틴, 송준의. 클린 아키텍처. 서울: 인사이트, 2019. p383
 
-## How to Get Started
+그럼에도 불구하고, 이 튜토리얼에서는 읽기와 쓰기만 가능한 아주 간단한 비즈니스에 대해서 플러그인 아키텍처를 적용해보려고 합니다. 비즈니스 로직이 담겨있는 '도메인'이라는 영역은 변경하지 않으면서 커맨드라인, 웹 프론트엔드, 백엔드, 모바일 애플리케이션까지 구현합니다.
 
-This theme can be used just as other [Jekyll themes][1].
+튜토리얼을 따라가다보면 '굳이 이렇게까지?'라는 의문이 들 수도 있겠습니다만, 한편으로는 대규모 애플리케이션을 구현하면서도 복잡도의 증가 속도를 제한하는 원리를 깨달으실 수 있을거라고.. 기대합니다.
 
-[Fork][3] this repository and add your markdown posts to the `_posts` folder.
+[복잡도 관리는 정보기술뿐만 아니라 모든 공학을 관통하는 원리입니다.](https://myeongjae.kim/blog/2020/02/05/single-principle-of-a-developer)
 
-### Deploy Locally with Jekyll Serve
+#### 결국엔 비즈니스
 
-This theme can be ran locally using Ruby and Gemfiles.
+왜 의존성을 관리해야 할까요? 의존성을 제대로 관리하지 못하면 시스템의 복잡도가 기하급수적으로 증가합니다.
 
-[Testing your GitHub Pages site locally with Jekyll](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/testing-your-github-pages-site-locally-with-jekyll) - GitHub
+> 이해관계자는 범위가 비슷한 일련의 변경사항을 제시할 뿐이지만, 개발자 입장에서는 복잡도가 지속적으로 증가하는 퍼즐 판 위에서 이해관계자가 계속해서 퍼즐 조각을 맞추라는 지시를 하는 것처럼 느껴진다.
+>
+> \- 로버트 C. 마틴, 송준의. 클린 아키텍처. 서울: 인사이트, 2019. p16
 
-## Full-text search
+복잡도가 증가하면 어떻게 될까요? 애플리케이션을 변경하기 어려워집니다.
 
-The search functionality in jekyll-gitbook theme is powered by the [gitbook-plugin-search-pro][5] plugin and is enabled by default.
+애플리케이션을 변경하기 어려워지면 어떻게 되나요? 시시각각 변하는 비즈니스 요구사항에 대처할 수 없게 됩니다.
 
-[https://sighingnow.github.io/jekyll-gitbook/?q=generated](https://sighingnow.github.io/jekyll-gitbook/?q=generated)
+비즈니스 요구사항에 대처할 수 없게 되면 어떻게 되나요? 회사가 망합니다.
 
-## Code highlight
+회사가 망하면 어떻게 되나요? 이직해서 다른 시스템의 복잡도를 늘리러 가면 됩니다(?)
 
-The code highlight style is configurable the following entry in `_config.yaml`:
+이렇게 모든 시스템의 복잡도는 높아져만 가고.. 우리는 의미있게 배열된 에너지에 혼란을 가중하고, 우주의 엔트로피는 더 빠르게 증가해서 결국 열역학적 죽음을 맞게 될 것입니다.
 
-```yaml
-syntax_highlighter_style: colorful
-```
+모두의 종말을 늦추기 위해 우리는 복잡도를 제어해야만 합니다. 닫힌 계 안에서 엔트로피를 줄이는 것이 불가능하다는 물리학적 비극이 우리의 현실이지만, 그래도 증가속도를 조금은 늦출 수는 있지 않을까요?
 
-The default code highlight style is `colorful`, the full supported styles can be found from [the rouge repository][6]. Customized
-style can be added to [./gitbook/rouge/](./gitbook/rouge/).
+로버트 마틴이 '클린 아키텍처'에서 궁극적으로 하고 싶은 말은 무엇일까요? 감히 클린 아키텍처를 한 마디로 요약해보겠습니다: **비즈니스 요구사항에 빠르게 대응할 수 있는 유연한 프로그램을 만들어라.**
 
-## How to generate TOC
+플러그인 아키텍처는 수단일 뿐입니다.
 
-The jekyll-gitbook theme leverages [jekyll-toc][4] to generate the *Contents* for the page.
-The TOC feature is not enabled by default. To use the TOC feature, modify the TOC
-configuration in `_config.yml`:
+## 참고자료
 
-```yaml
-toc:
-    enabled: true
-    h_min: 1
-    h_max: 3
-```
+- [로버트 C. 마틴, 송준의. _클린 아키텍처_. 서울: 인사이트, 2019](http://ebook.insightbook.co.kr/book/69)
+- [조영호. _오브젝트_. 파주: 위키북스, 2019](https://wikibook.co.kr/object/)
+- [톰 홈버그, 박소은. _만들면서 배우는 클린 아키텍처_. 파주: 위키북스, 2021](https://wikibook.co.kr/clean-architecture/)
 
 ## License
 
 This work is open sourced under the Apache License, Version 2.0.
 
-Copyright 2019 Tao He.
-
-[1]: https://pages.github.com
-[2]: https://pages.github.com/themes
-[3]: https://github.com/sighingnow/jekyll-gitbook/fork
-[4]: https://github.com/allejo/jekyll-toc
-[5]: https://github.com/gitbook-plugins/gitbook-plugin-search-pro
-[6]: https://github.com/rouge-ruby/rouge/tree/master/lib/rouge/themes
+Copyright 2022 Myeongjae Kim.
