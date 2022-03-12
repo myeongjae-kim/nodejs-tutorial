@@ -2,7 +2,7 @@
 
 Nodejs 세계에 클린 아키텍처를 전파하기 위해 만든 튜토리얼입니다.
 
-https://myeongjae-kim.github.io/nodejs-tutorial/
+https://books.myeongjae.kim/nodejs-tutorial/
 
 [Jekyll Gitbook](https://github.com/sighingnow/jekyll-gitbook)을 사용합니다.
 
