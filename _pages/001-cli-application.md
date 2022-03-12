@@ -14,14 +14,14 @@ layout: post
 
 프로젝트를 진행하기 위해 필요한 의존성을 설치합니다.
 
-- TypeScript: https://www.typescriptlang.org/download
-- typescript-eslint: https://typescript-eslint.io/docs/linting/
-- Prettier: https://prettier.io/docs/en/install.html
-- ts-node: https://github.com/TypeStrong/ts-node#installation
-- nodemon: https://github.com/remy/nodemon#installation
-- ts-jest: https://github.com/kulshekhar/ts-jest
+- TypeScript: [https://www.typescriptlang.org/download](https://www.typescriptlang.org/download)
+- typescript-eslint: [https://typescript-eslint.io/docs/linting/](https://typescript-eslint.io/docs/linting/)
+- Prettier: [https://prettier.io/docs/en/install.html](https://prettier.io/docs/en/install.html)
+- ts-node: [https://github.com/TypeStrong/ts-node#installation](https://github.com/TypeStrong/ts-node#installation)
+- nodemon: [https://github.com/remy/nodemon#installation](https://github.com/remy/nodemon#installation)
+- ts-jest: [https://github.com/kulshekhar/ts-jest](https://github.com/kulshekhar/ts-jest)
 
-설정 완료한 프로젝트 예시: https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/init
+설정 완료한 프로젝트 예시: [https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/init](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/init)
 
 ## 기능적 요구사항
 
