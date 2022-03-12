@@ -6,11 +6,24 @@ category: Tutorial
 layout: post
 ---
 
-다짜고자 코드부터 작성해봅시다! nodejs로 아래의 요구사항을 만족하는 명령줄 인터페이스 애플리케이션을 구현하면 됩니다. TypeScript로 작성하기를 추천합니다.
+다짜고자 코드부터 작성해봅시다! nodejs로 아래의 요구사항을 만족하는 명령줄 인터페이스 애플리케이션을 구현하면 됩니다.
 
 데이터는 메모리상에만 존재해도 됩니다. 즉, 애플리케이션을 재시작 할 때마다 초기화되어도 상관 없습니다.
 
-## 요구사항
+## 비기능적 요구사항
+
+프로젝트를 진행하기 위해 필요한 의존성을 설치합니다.
+
+- TypeScript: https://www.typescriptlang.org/download
+- typescript-eslint: https://typescript-eslint.io/docs/linting/
+- Prettier: https://prettier.io/docs/en/install.html
+- ts-node: https://github.com/TypeStrong/ts-node#installation
+- nodemon: https://github.com/remy/nodemon#installation
+- ts-jest: https://github.com/kulshekhar/ts-jest
+
+설정 완료한 프로젝트 예시: https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/init
+
+## 기능적 요구사항
 
 목록 조회, 상세 조회, 쓰기가 가능한 게시판을 명령줄 인터페이스 애플리케이션.
 
