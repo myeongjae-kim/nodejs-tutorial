@@ -9,8 +9,8 @@ description: >
 version:          1.0
 gitbook_version:  3.2.3
 
-url:              'https://books.myeongjae.kim'
-baseurl:          '/nodejs-tutorial'
+url:              'https://nodejs.myeongjae.kim'
+baseurl:          '/'
 rss:              RSS
 
 toc:
