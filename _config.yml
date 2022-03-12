@@ -10,7 +10,7 @@ version:          1.0
 gitbook_version:  3.2.3
 
 url:              'https://nodejs.myeongjae.kim'
-baseurl:          '/'
+baseurl:          ''
 rss:              RSS
 
 toc:
@@ -30,7 +30,7 @@ kramdown:
   syntax_highlighter_opts:
     guess_lang:           true
 
-syntax_highlighter_style: colorful
+syntax_highlighter_style: github
 
 markdown_ext:     markdown,mkdown,mkdn,mkd,md
 

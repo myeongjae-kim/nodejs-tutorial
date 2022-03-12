@@ -1,6 +1,6 @@
 # Nodejs Tutorial with Clean Architecture using IoC Container
 
-Nodejs 세계에 클린 아키텍처를 전파하기 위해 만든 튜토리얼입니다.
+Nodejs로 클린 아키텍처를 구현해보기 위해 만든 튜토리얼입니다.
 
 https://nodejs.myeongjae.kim/
 
