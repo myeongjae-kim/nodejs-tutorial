@@ -20,6 +20,8 @@ layout: post
 - ts-node: [https://github.com/TypeStrong/ts-node#installation](https://github.com/TypeStrong/ts-node#installation)
 - nodemon: [https://github.com/remy/nodemon#installation](https://github.com/remy/nodemon#installation)
 - ts-jest: [https://github.com/kulshekhar/ts-jest](https://github.com/kulshekhar/ts-jest)
+- @johanblumenberg/ts-mockito: [https://github.com/johanblumenberg/ts-mockito](https://github.com/johanblumenberg/ts-mockito)
+  - [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js) - 기억보단 기록을](https://jojoldu.tistory.com/638)
 
 설정 완료한 프로젝트 예시: [https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/setup](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/setup)
 
