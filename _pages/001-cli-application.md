@@ -21,7 +21,7 @@ layout: post
 - nodemon: [https://github.com/remy/nodemon#installation](https://github.com/remy/nodemon#installation)
 - ts-jest: [https://github.com/kulshekhar/ts-jest](https://github.com/kulshekhar/ts-jest)
 
-설정 완료한 프로젝트 예시: [https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/init](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/init)
+설정 완료한 프로젝트 예시: [https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/setup](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/setup)
 
 ## 기능적 요구사항
 
