@@ -75,7 +75,7 @@ secondary adapter는 유스케이스에 의해서 사용당하는 역할입니�
 
 챕터 1의 '명령줄 인터페이스 애플리케이션'을 구현하면서 저는 아래와 같은 디렉토리 구조를 사용했습니다.
 
-[https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/8ec18ea489b72b1481dbb6ae0e3f8700de366acd/src/article](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/8ec18ea489b72b1481dbb6ae0e3f8700de366acd/src/article)
+[https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/6841dfc321a125e52e71babd3f15b34b20df4c74/src/article](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/6841dfc321a125e52e71babd3f15b34b20df4c74/src/article)
 
 ```
 article
@@ -92,8 +92,8 @@ article
 │       │   ├── ArticleCreateUseCase.ts (Interface)
 │       │   ├── ArticleGetUseCase.ts (Interface)
 │       │   ├── ArticleListUseCase.ts (Interface)
-│       │   ├── ArticleRequestDto.ts (Type)
-│       │   └── ArticleResponseDto.ts (Type)
+│       │   ├── ArticleRequest.ts (Type)
+│       │   └── ArticleResponse.ts (Type)
 │       └── outgoing
 │           ├── ArticleLoadPort.ts (Interface)
 │           └── ArticleSavePort.ts (Interface)
@@ -147,8 +147,8 @@ article/application
     │   ├── ArticleCreateUseCase.ts (Interface)
     │   ├── ArticleGetUseCase.ts (Interface)
     │   ├── ArticleListUseCase.ts (Interface)
-    │   ├── ArticleRequestDto.ts (Class)
-    │   └── ArticleResponseDto.ts (Class)
+    │   ├── ArticleRequest.ts (Class)
+    │   └── ArticleResponse.ts (Class)
     └── outgoing
         ├── ArticleLoadPort.ts (Interface)
         └── ArticleSavePort.ts (Interface)
@@ -288,7 +288,7 @@ Doctor Duty 문제는 Cockroach DB의 Serializable Transaction[^8] 문서에서 
 
 > 시나리오
 >
-> - 의사는 휴게 대기([온콜, on call](https://www.doctorsnews.co.kr/news/articleView.html?idxno=129469)) 교대근무 일정을 관리할 수 있는 애플리케이션으로 관리할 수 있다.
+> - 의사는 휴게 대기([온콜, on call](https://www.doctorsnews.co.kr/news/articleView.html?idxno=129469) 교대근무 일정을 관리할 수 있는 애플리케이션으로 관리할 수 있다.
 > - 최소한 한 명의 의사는 휴게 대기를 해야한다는 규칙이 있다.
 > - 두 명의 의사가 특정 교대근무에 대기 중이고, 이들이 거의 동시에 교대근무에 대한 휴가를 요청하려고 한다.
 > - Postgres DB의 기본 트랜잭션 격리 레벨인 `READ COMMITTED`에서는 [write skew](https://www.cockroachlabs.com/docs/stable/demo-serializable.html#write-skew)
@@ -305,16 +305,86 @@ Doctor Duty 문제는 Cockroach DB의 Serializable Transaction[^8] 문서에서 
 100번이나 비정상적으로 작동한다는 말이기 때문입니다. 주위 개발자가 맨날 최악을 생각하고 시시콜콜한 것까지 모두 신경쓴다고요? 직업병이니 너그럽게
 이해해주세요...
 
-#### DTO (Data Transfer Object)
+#### 데이터 캐리어 (Data Carrier)
 
-`port/incoming` 디렉토리에는 `ArticleRequestDto`와 `ArticleResponseDto` 타입이 있습니다. 이 타입은 유스케이스 인터페이스가 application
+`port/incoming` 디렉토리에는 `ArticleRequest`와 `ArticleResponse` 타입이 있습니다. 이 타입은 유스케이스 인터페이스가 application
 디렉토리 바깥 세상과 소통하기 위해 매개변수와 리턴값으로 사용합니다. 도메인 엔티티인 `Article`를 애플리케이션 바깥으로 내보내지 않도록 제한해서
 애플리케이션의 경계를 확실하게 해주는 역할을 합니다. 다만 편의를 위해서 타입스크립트의 `type` 예약어로 선언했습니다. 좀 더 강력하게 `Article`을 보호하기
-위해서 DTO를 클래스로 만들어도 좋습니다.
+위해서 타입 대신 클래스로 만들어도 좋습니다.
 
 무조건 `Article`이 애플리케이션 바운더리 바깥으로 빠져나가면 안되는 걸까요? 애플리케이션 설계에서 무조건은 없습니다. 소수의 개발자가 적은 양의
 코드베이스에서 개발하고 유지보수하는 상황이라면 뭔들 불가능할까요, 그들간의 일관성만 맞추면 됩니다. 하지만 다수의 개발자가 투입된 큰 프로젝트에서는 이 규칙들을
 엄격하게 지키는 편이 좋다고 생각합니다.
+
+##### 얘네들 DTO(Data Transfer Object) 아니에요?
+
+DTO가 뭘까요? 단순하게 번역하면 데이터 전송 객체인데... 데이터라는건 알겠는데 전송은 뭐고 객체는 또 뭘까요?
+
+마틴 파울러는 DTO를 다음과 같이 설명합니다.
+
+> 원격 퍼사드(Remote Facade)같은 원격 인터페이스와 협업을 한다면 한 번 한 번의 요청에 비용이 많이 든다. 결과적으로 요청 횟수를 줄일 필요가 있고,
+> 이는 한 번의 요청에 많은 데이터를 전송해야 함을 의미한다. 많은 수의 파라미터를 사용하는 것도 방법이 될 수 있다. 그러나 이 방법으로 프로그램을 작성하기엔
+> 곤란한 경우가 있다 - 자바같이 하나의 값만 리턴할 수 있는 언어에서는 불가능한 방법이다.
+>
+> When you're working with a remote interface, such as Remote Facade (388), each call to it is expensive.
+> As a result you need to reduce the number of calls, and that means that you need to transfer more data with each call.
+> One way to do this is to use lots of parameters. However, this is often awkward to program - indeed, it's often
+> impossible with languages such as Java that return only a single value.
+> 
+> 해결책은 요청에 필요한 모든 데이터를 담을 수 있는 데이터 전송 객체(Data Transfer Object, DTO)를 만드는 것이다. 연결(connection)을 가로질러야
+> 하기 때문에 데이터 전송 객체는 직렬화가 가능해야 한다. 보통 서버 측에서 DTO와 도메인 객체 사이의 데이터 전송을 담당하는 어셈블러를 사용한다.
+>
+> The solution is to create a Data Transfer Object that can hold all the data for the call.
+> It needs to be serializable to go across the connection. Usually an assembler is used on the server side to
+> transfer data between the DTO and any domain objects.
+> 
+> \- Martin Fowler, “P of EAA: Data Transfer Object”. 2022년 3월 19일 접근. https://martinfowler.com/eaaCatalog/dataTransferObject.html.
+
+DTO의 전송(Transfer)는 주로 네트워크 통신과 관련(원격 퍼사드)된 의미로 사용한다고 볼 수 있습니다. `ArticleRequest`, `ArticleResponse`는
+원격 요청이 아니라 애플리케이션 내부에서 데이터를 옮기기 위해 사용하는 타입이니 '전송'이라는 단어는 어울리지 않습니다. 그럼 데이터 객체(Data Object)라고
+부르면 어떨까요?
+
+이것 또한 애매한 것이... '객체'라는 단어에 이미 데이터가 포함되어 있을 뿐더러, 과연 이 데이터 뭉치를 객체라고 부를 수 있는지도 애매하기 때문입니다.
+객체 지향 프로그래밍의 선구자 엘런 케이는 '객체 지향'이라는 단어의 탄생에 대해서 이야기하면서 다음과 같이 말했습니다.
+
+> 나는 객체들을 생물학적 세포나 네트워크의 개별 컴퓨터라고 생각했다. 이들은 오직 메시지로서만 소통이 가능하다 (그래서 메시지를 처음부터 도입했다 -- 
+> 메시지를 프로그래밍 언어로 효과적으로 사용하는 방법을 알게 되기까지 시간이 조금 걸렸지만).
+> 
+> \- I thought of objects being like biological cells and/or individual
+> computers on a network, only able to communicate with messages (so
+> messaging came at the very beginning -- it took a while to see how to
+> do messaging in a programming language efficiently enough to be
+> useful).
+> 
+> 나는 데이터를 없애버리고 싶었다. B5000은 믿기지 않는 하드웨어 아키텍처로 이것(데이터 없애기)을 거의 해냈다.
+> 나는 세포/온전한-컴퓨터 은유가 데이터를 없앨 수 있고, "<-"는 그저 또 다른 메시지 토큰일 뿐이라는 것을 깨달았다.
+> (이것을 깨닫기 까지 시간이 꽤 걸렸는데, 이 기호가 함수와 프로시저의 이름을 나타내는 것이라고 생각했기 때문이다)
+> 
+> \- I wanted to get rid of data. The B5000 almost did this via its
+> almost unbelievable HW architecture. I realized that the
+> cell/whole-computer metaphor would get rid of data, and that "<-"
+> would be just another message token (it took me quite a while to
+> think this out because I really thought of all these symbols as names
+> for functions and procedures.
+> 
+>  \- Stefan L. Ram, Berlin. “Dr. Alan Kay on the Meaning of ‘Object-Oriented Programming’”. Stefan L. Ram, Berlin, Germany., 2003년 7월 23일. https://www.purl.org/stefan_ram/pub/doc_kay_oop_en.
+> 
+> 위 링크는 [창시자 앨런 케이가 말하는, 객체 지향 프로그래밍의 본질](https://velog.io/@eddy_song/alan-kay-OOP)에서 찾았습니다.
+
+엘런 케이는 객체 하나 하나가 온전한 기능을 하는 작은 컴퓨터라고 생각했습니다. `ArticleRequest`, `ArticleResponse`는 기능 하나 없는 그저 데이터
+뭉치이기 때문에 데이터 객체(Data Object)라고 부르기엔 너무 과하니 객체라는 이름도 빼고 데이터라고 부르면 될 것 같네요. 하지만 데이터... 라고만 부르기엔
+그 뜻이 너무 광범위하니, 이일민(토비)님이 제안하신 데이터 캐리어(Data Carrier)라고 부르겠습니다.
+
+> 정의도 혼란스런 DTO 그만쓰자. Data Carrier라고 불러라. 줄여서 DC.
+> 
+> "이 경우엔 캐리어 하나 만들어서 날리시죠"
+> 
+> 이일민, 2022년 3월 13일, https://www.facebook.com/tobyilee/posts/10222914608868299
+ 
+심지어 `ArticleRequest`, `ArticleResponse`는 인스턴스화할 수 있는 클래스가 아니라 타입일 뿐이니까.. 데이터 캐리어 타입이라고 부르면 되겠습니다.
+
+값 객체(VO, Value Object)는 어떨까요? 값 객체는 이미 에릭 에반스의 『도메인 주도 개발』[^4]에서 특정한 의미로 쓰이고 있는 단어니까 여기서는 다른 단어를
+사용하게는게 좋겠습니다. 마틴 파울러도 값 객체에 대해서 한 마디 했습니다: https://martinfowler.com/eaaCatalog/valueObject.html
 
 #### Outgoing 포트
 
@@ -363,7 +433,7 @@ export class ArticleInMemoryRepository {
 http 요청을 사용해도 됩니다. 해당 기술을 사용하는 Repository를 구현하고 어댑터와 연결만 해주면 끝입니다. `application` 디렉토리는
 `adapter` 디렉토리를 의존하지 않기 때문에 데이터가 어디에 어떻게 저장되고 불러와지는지(=세부사항) 전혀 모릅니다.
 
-모르는게 약입니다. 정보를 제한하는만큼 유연한 설계를 할 수 있습니다. [아이러니하게도 정보 기술(IT) 분야의 설계를 잘 하기 위해서는 정보를 차단해야 합니다.](https://myeongjae.kim/blog/2020/02/05/single-principle-of-a-developer#좋은-설계란))
+모르는게 약입니다. 정보를 제한하는만큼 유연한 설계를 할 수 있습니다. [아이러니하게도 정보 기술(IT) 분야의 설계를 잘 하기 위해서는 정보를 차단해야 합니다.](https://myeongjae.kim/blog/2020/02/05/single-principle-of-a-developer#좋은-설계란)
 프로그래밍 언어도 사용자에게 정보를 제한하는 방식으로 발전해왔습니다.
 
 천공카드로 프로그래밍을 하던 시절에는 프로그래머가 하드웨어에 대한 모든 정보와 권한을 가질 수 있었습니다. 정보와 권한이 따르는 만큼 천공카드 프로그래밍은
@@ -502,7 +572,7 @@ assert(JSON.stringify(csvToObjectFunctional(input)) === JSON.stringify(expected)
 대한 권한과 책임에서 자유로워집니다.
 
 제가 2018년에 리액트로 form을 개발할 때는 [redux-form](https://redux-form.com)을 사용했습니다. 입력값에 대한 검증은 사용자가 직접 구현해야
-했습니다: [https://redux-form.com/6.5.0/examples/fieldlevelvalidation/](https://redux-form.com/6.5.0/examples/fieldlevelvalidation/))
+했습니다: [https://redux-form.com/6.5.0/examples/fieldlevelvalidation/](https://redux-form.com/6.5.0/examples/fieldlevelvalidation/)
 
 ```javascript
 import React from 'react'
@@ -539,7 +609,7 @@ const SignupSchema = Yup.object().shape({
 redux-form에서는 검증용 함수를 직접 구현해야 했다면, Formik에서는 Yup을 사용해서 검증 요구사항을 선언형으로 작성할 수 있습니다. Yup 사용자는 값을
 '어떻게' 검증할지 작성하는게 아니라 '무엇을' 검증할지 작성합니다.
 
-Flutter를 사용해서 UI를 선언형으로 작성할 수 있습니다: [https://docs.flutter.dev/get-started/flutter-for/declarative](https://docs.flutter.dev/get-started/flutter-for/declarative)
+Flutter를 사용하면 UI를 선언형으로 작성할 수 있습니다: [https://docs.flutter.dev/get-started/flutter-for/declarative](https://docs.flutter.dev/get-started/flutter-for/declarative)
 여기서도 '어떻게'로부터 '무엇을'으로의 이동을 발견할 수 있습니다.
 
 ```dart
@@ -569,7 +639,7 @@ resource "aws_vpc" "main" {
 ```
 
 제가 처음으로 제대로 사용한 선언형 언어는 SQL(Structured Query Language)입니다. 절차형 패러다임에 절여진 뇌로 SQL를 처음 만났을 때, 이미 작성되어
-있는 코드를 읽기에는 편했지만 막상 제가 작성하려고 하니까 하나도 모르겠더라고요. 뇌를 절차형 용액에서 건져내 선언형을 받아들일 때까지 시간이 많이 걸렸습니다.
+있는 코드를 읽기에는 편했지만 막상 제가 작성하려고 하니까 하나도 모르겠더라고요. 뇌를 절차형 용액에서 건져내 선언형을 받아들일 때까지 시간이 오래 걸렸습니다.
 SQL도 마찬가지로 DB에게 '어떻게' 대신 '무엇을'을 요청합니다. 어떻게 데이터를 가져오거나 변경할지는 DBMS(Database Management System) 맘대로입니다.
 
 ```sql
@@ -637,13 +707,220 @@ export class ArticleCommandViewController {
 }
 ```
 
-Controller가 의존하는 객체 설명 
+`ArticleCommandViewController`는 `CliInOut`, `MenuPrinter`, `ArticleCreateUseCase`를 의존합니다. `CliInOut`은 Nodejs에서
+기본으로 제공하는 `readline` 라이브러리를 한 번 감싼 클래스입니다. `MenuPrinter`는 명령줄에 출력할 텍스트를 제공하는... UI(User Interface)를
+그리는 클래스라고 할 수 있습니다. 문자열을 리턴합니다. `ArticleCreateUseCase`는 이미 위에서 설명했듯이 인터페이스입니다.
 
-CliInOut 설명
+#### Callback을 Promise로
 
+```typescript
+import readline from "readline";
 
+export class CliInOut {
+  constructor(private rl: readline.Interface) {
+    console.clear();
+  }
 
-뭐야, 메인 함수가 없는데요?
+  public printAndGet = (toPrint: string, clear = true): Promise<string> =>
+    new Promise<string>((resolve) => {
+      this.rl.question(toPrint, (answer) => {
+        if (clear) {
+          console.clear();
+        }
+        resolve(answer);
+      });
+    });
+
+  public print = (toPrint: string) => {
+    this.rl.write(toPrint);
+  };
+}
+```
+
+`readline.Interface`의 `question` 함수는 첫 번째 매개변수로 명령줄에 출력할 문자열을 받고, 두 번째 매개변수로 사용자의 입력을 받은 뒤 실행하는
+콜백 함수를 받습니다. 모든 콜백 함수는 프라미스로 변환할 수 있습니다. 왜냐하면 그것이 프라미스니까요...⭐
+
+프라미스는 제어의 역전을 통해 콜백지옥을 해결하기 위해서 탄생했습니다. 콜백 함수 안에서 또 다른 콜백을 사용하고, 그 안에서 또 콜백을 사용하게 되면 인덴트가
+한없이 늘어나는 지옥의 가독성을 체험할 수 있습니다. 프라미스를 사용하면 콜백 함수 안에서는 `resolve()` 혹은 `reject()`를 호출하는 일만 하면 됩니다.
+콜백 함수 안에서 하던 일을 프라미스를 통해서 콜백 함수 밖으로 빼냅니다.
+
+동기적으로 하던 일을 비동기적으로 처리하기 위해 콜백 함수를 만들었습니다. 이것이 첫 번째 제어의 역전입니다. 콜백 함수가 언제 불릴지는 우리가 결정할 수 없고
+콜백 함수를 매개변수로 받는 함수에서 결정합니다. 우리는 프라미스를 사용해서 콜백 함수 내부에서 하던 일을 밖으로 빼냅니다. 이것이 두 번째 제어의 역전입니다.
+콜백 함수는 결과를 전달하는 역할만 할 뿐, 그 이후의 과정은 콜백함수 바깥에서 진행합니다. 우리는 프라미스를 통해서 잃었던 제어권을 다시 찾아올 수 있습니다.
+
+제어의 역전 관점에서 프라미스를 설명하는 더 자세한 글은 카일 심슨의 『You Don’t Know JS: this와 객체 프로토타입, 비동기와 성능』[^9]
+'3장 프라미스'를 참고하세요.
+
+#### 상태 관리
+
+제가 작성한 애플리케이션은 두 군데에서 상태관리를 합니다. 첫 번째 상태 관리자는 `ArtilceInMemoryRepository`입니다. 이 클래스에서는 도메인 객체의
+상태를 관리합니다. UI를 그리다 보면 현재 UI가 어떤 상태에 있는지 표현해야 할 필요가 생깁니다. 저는 `View`라는 값 타입과 `State` 인터페이스를 사용하는
+`StateManager` 클래스를 만들었습니다.
+
+```typescript
+export type View =
+  | "HOME"
+  | "ARTICLE_LIST"
+  | "ARTICLE_DETAIL"
+  | "ARTICLE_FORM"
+  | "EXIT";
+
+export interface State {
+  view: View;
+  selectedArticleId: number;
+}
+```
+
+`type`과 `interface`의 차이는 무엇일까요? 제가 생각하는 가장 큰 기능적인 차이는 `type`은 상속이 불가능하고 `interface`는 상속이 가능하다는
+것입니다. 그리고 `View`처럼 값을 타입으로 사용하려면 `interface`는 불가능하고 `type`을 사용해야 합니다. 이 외의 차이들도 있습니다:
+[https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#differences-between-type-aliases-and-interfaces](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#differences-between-type-aliases-and-interfaces)
+
+`type`과 `interface`모두 자바스크립트로 컴파일하면 사라지는 정보들입니다. 많은 경우에 `type`이 `interface`를 대체할 수 있고, 조금 더 엄격한
+부분이 있기 때문에 `interface`를 사용하지 않고 `type`만 사용하도록 컨벤션을 정하는 경우도 있습니다. 저는 개인의 선호에 따라 혼용해서 사용해도 상관
+없다는 입장입니다.
+
+아래는 제가 직접 구현한 `StateManager` 입니다.
+
+```typescript
+import { Constants } from "../../../../../Constants";
+import { createInitialState, State } from "../State";
+
+export class StateManager {
+  constructor(private state: State = createInitialState()) {}
+
+  public home = (answer: string) => {
+    switch (answer) {
+      case "1":
+        this.setState({ view: "ARTICLE_LIST" });
+        break;
+      case "2":
+        this.setState({ view: "ARTICLE_FORM" });
+        break;
+      case "x":
+        this.setState({ view: "EXIT" });
+        break;
+    }
+  };
+
+  public articleList = (answer: string) => {
+    switch (answer) {
+      case "":
+        break;
+      case Constants.GO_BACK_COMMAND:
+        this.setState({ view: "HOME" });
+        break;
+      default:
+        this.setState({
+          view: "ARTICLE_DETAIL",
+          selectedArticleId: parseInt(answer),
+        });
+        break;
+    }
+  };
+
+  public articleDetail = () => {
+    this.setState({ view: "ARTICLE_LIST", selectedArticleId: -1 });
+  };
+
+  public articleCreate = () => {
+    this.setState({ view: "HOME", selectedArticleId: -1 });
+  };
+
+  public getState = (): State => ({ ...this.state });
+
+  private setState = (newState: Partial<State>) => {
+    this.state = {
+      ...this.state,
+      ...newState,
+    };
+  };
+}
+```
+
+주목해야 하는 부분은 `getState`와 `setState`입니다. `state` 객체를 외부효과에서 보호하기 위해 `getState`는 `state`를 복사해서 새로운 객체를
+내보냅니다. `setState`는 새로운 상태를 매개변수에 받는데, 이 매개변수를 그대로 `this.state`에 대입하지 않고 새로운 객체를 만들어 `this.state`에 
+대입합니다. `getState`로 내보낸 객체의 상태가 변하더라도 `this.state`에는 영향이 없고, `setState`의 매개변수로 들어온 `newState`의 상태를
+바깥에서 바꾸더라도 `setState` 함수가 실행된 이후라면 `this.state`에 영향이 없습니다. `this.state`를 외부효과에서 철저히 보호합니다.
+
+`ArticleCommandController`는 `StateManager`를 의존하지 않습니다. 이 두 클래스는 `article` 디렉토리 바깥의
+`ApplicationByStateManager`에서 사용합니다.
+
+```typescript
+import { ArticleCommandViewController } from "./article/view/cli/ArticleCommandViewController";
+import { ArticleQueryViewController } from "./article/view/cli/ArticleQueryViewController";
+import { StateManager } from "./article/view/cli/state-modules/vanila/StateManager";
+
+export class ApplicationByStateManager {
+  constructor(
+    private readonly stateManager: StateManager,
+    private readonly cliQueryController: ArticleQueryViewController,
+    private readonly cliCommandController: ArticleCommandViewController
+  ) {}
+
+  public run = async () => {
+    for (;;) {
+      switch (this.stateManager.getState().view) {
+        case "HOME":
+          await this.cliQueryController
+            .renderHome()
+            .then((input) => this.stateManager.home(input));
+          break;
+        case "ARTICLE_LIST":
+          await this.cliQueryController
+            .renderArticleList()
+            .then((input) => this.stateManager.articleList(input));
+          break;
+        case "ARTICLE_DETAIL":
+          await this.cliQueryController
+            .renderArticleDetail(this.stateManager.getState().selectedArticleId)
+            .then(this.stateManager.articleDetail);
+          break;
+        case "ARTICLE_FORM":
+          await this.cliCommandController
+            .rednerArticleForm()
+            .then(this.stateManager.articleCreate);
+          break;
+        case "EXIT":
+          process.exit(0);
+      }
+    }
+  };
+}
+```
+
+`StateManager`의 상태에 따라서 `ArticleQueryController`, `ArticleCommandController`를 호출합니다. 컨트롤러 클래스가 입출력 담당하고,
+사용자의 입력은 다시 `StateManager`에 들어가서 다음 상태를 유발합니다. 컴퓨터는 유한 상태 기계(Finite State Machine)[^10]이지만, 특히 UI와
+관련된 코드를 작성할 때 이 개념이 유용합니다.
+
+`StateManager`를 직접 구현해서 애플리케이션을 만들기도 했지만, [redux](https://redux.js.org)와 [mobx](https://mobx.js.org)를
+사용해서 만들어보기도 했습니다(`ApplicationByRedux`, `ApplicationByMobx` 클래스). 이 두 라이브러리는 `react`에 의존하지 않기 때문에 독립적으로
+사용할 수 있습니다. 대놓고 유한 상태 기계의 구현을 돕는 라이브러리인 [xstate](https://xstate.js.org)로도 애플리케이션을 작성해보는 것을 추천합니다.
+
+처음부터 `ViewController`와 `StateManager`를 나누는 방식으로 작성하지는 못했습니다. 명령줄 입출력 관련 코드, UI 상태 코드, 유스케이스 호출 코드가
+한데 버무려진 상태로 작동하는 애플리케이션을 작성하고, 이 애플리케이션을 복사해서 redux를 사용하는 애플리케이션을 만들었습니다. 만들어놓고 보니
+두 애플리케이션 코드에 중복되는 부분이 보였고, 이 중복을 없애면서 `ViewController`와 `StateManager`가 탄생했습니다. `ViewController`를
+UI 상태와 완전히 분리해서 여러 가지 상태 관리 모듈을 사용해서 UI를 구현할 수 있게 만들었습니다. 이후엔 테스트를 작성하기 쉬운 형태로 클래스를 정리했습니다.
+
+저는 '동일한 기능을 하는 애플리케이션을 여러 가지 상태 관리 라이브러리를 사용해서 구현하고 싶다'라는 요구사항이 있었기 때문에 리팩토링을 진행했습니다.
+만약 실제 비즈니스 상황이었고 한 가지의 상태 관리 라이브러리만 사용해도 충분했다면... 아마 저는 리팩토링을 하지 않았을 겁니다. 언젠가 비즈니스에 여유가 있을
+때 자기만족을 위해서 해볼 수는 있을 것 같네요.
+
+만약 UI를 작성하는데도 TDD 방법론을 따라 테스트를 먼저 작성했다면 어땠을까요? 기능을 구현하기 전에 테스트를 먼저 설계해야 했으므로 속도가 더딘 것처럼
+느껴지고 머리가 아프겠지만... 아마 지금과 같은 구조를 훨씬 더 빨리 만들 수 있지 않았을까 생각합니다.
+
+> 개발자가 속는 더 잘못된 거짓말은 "지저분한 코드를 작성하면 단기간에는 빠르게 갈 수 있고, 장기적으로 볼 때만 생산성이 낮아진다"는 견해다. 이 거짓말을
+> 받아들인 개발자는 엉망인 코드를 만드는 태세에서, 나중에 기회가 되면 엉망이 된 코드를 정리하는 태세로 전환할 수 있다고 자신의 능력을 과신하게 된다. 하지만
+> 이는 그저 진실을 오인한 것일 뿐이다. 진실은 다음과 같다.
+> *엉망으로 만들면 깔끔하게 유지할 때보다 항상 더 느리다. 시간 척도를 어떻게 보든지 관계없이 말이다.*
+> 
+> ...
+> 
+> 또한 TDD를 적용한 날이 적용하지 않은 날보다 대략 10% 빠르게 작업이 완성되었고, 심지어 TDD를 적용한 날 중 가장 느렸던 날이 TDD를 적용하지 않고 가장
+> 빨리 작업한 날보다도 더 빨랐다.
+> 
+> \- 로버트 C. 마틴, 송준의. _클린 아키텍처_. 서울: 인사이트, 2019. p11
+
+### 뭐야, 메인 함수가 없는데요?
 
 View를 구현하기 전까지, 즉 `domain`, `application`, `adapter` 디렉토리를 구현할 때까지는 메인 함수를 작성하지 않고 TDD방식으로 애플리케이션을
 작성했습니다. 파일 트리를 간결하게 보여드리기 위해 테스트 파일을 제외했지만, 테스트 파일까지 포함해서 파일 트리를 출력한다면 다음과 같습니다.
@@ -669,12 +946,12 @@ article
 │       │   ├── ArticleCreateUseCase.ts
 │       │   ├── ArticleGetUseCase.ts
 │       │   ├── ArticleListUseCase.ts
-│       │   ├── ArticleRequestDto.ts
-│       │   ├── ArticleResponseDto.ts
+│       │   ├── ArticleRequest.ts
+│       │   ├── ArticleResponse.ts
 │       │   └── __test__
-│       │       ├── ArticleRequestDto.unit.test.ts
-│       │       ├── ArticleResponseDto.unit.test.ts
-│       │       └── ArticleResponseDtoFixture.ts
+│       │       ├── ArticleRequest.unit.test.ts
+│       │       ├── ArticleResponse.unit.test.ts
+│       │       └── ArticleResponseFixture.ts
 │       └── outgoing
 │           ├── ArticleLoadPort.ts
 │           └── ArticleSavePort.ts
@@ -715,12 +992,12 @@ article
                     └── StateManager.unit.test.ts
 ```
 
-여기서 테스트까지 얘기하진 않겠습니다. 테스트만으로도 책 한권은 거뜬하니까요. 켄트 벡의 『테스트 주도 개발』[^9]과 블라디미르 코리코프의 『단위 테스트』[^10]에
+여기서 테스트까지 얘기하진 않겠습니다. 테스트만으로도 책 한권은 거뜬하니까요. 켄트 벡의 『테스트 주도 개발』[^11]과 블라디미르 코리코프의 『단위 테스트』[^12]에
 제가 테스트에 대해서 하고 싶은 이야기 모두가, 그리고 훨씬 깊은 이야기가 있습니다.
 향로님의 [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js)](https://jojoldu.tistory.com/638)도 꼭 읽어보세요. 
 
-지금까지는 계속 클래스만 만들었습니다. 테스트를 통해서 개별 클래스의 기능 하나 하나를 검증하면서 여기까지 왔습니다. 클래스들은 다른 클래스나 인터페이스를
-의존합니다. 결국 어딘가에서 이 클래스과 인터페이스들의 관계를 엮어서 동작하게 해야 합니다. 여기서 `ApplicationContext`가 등장합니다.
+지금까지는 계속 클래스만 만들었습니다. 클래스들은 다른 클래스나 인터페이스를 의존합니다. 결국 어딘가에서 이 클래스과 인터페이스들의 관계를 엮어서 동작하게
+해야 합니다. 여기서 `ApplicationContext`가 등장합니다.
 
 ---
 
@@ -729,8 +1006,10 @@ article
 [^3]: [로버트 C. 마틴, 송준의. _클린 아키텍처_. 서울: 인사이트, 2019](http://ebook.insightbook.co.kr/book/69)
 [^4]: [에릭 에반스, 이대엽. _도메인 주도 설계_. 파주: 위키북스, 2011](https://wikibook.co.kr/domain-driven-design/)
 [^5]: [Konuklar, Tugce. _“Hexagonal (Ports & Adapters) Architecture”_. Idealo Tech Blog (blog), 2021년 4월 20일.](https://medium.com/idealo-tech-blog/hexagonal-ports-adapters-architecture-e3617bcf00a0#8ad5)
-[^6]: [ACID(원자성Atomicity, 일관성Consistency, 고립성Isolation, 지속성Durability). 트랜잭션의 정상 작동을 보장하기 위해 지켜야 하는 4가지 성질.](https://ko.wikipedia.org/wiki/ACID))
-[^7]: [Cahill, Michael J., Uwe Röhm and Alan D. Fekete. “Serializable isolation for snapshot databases”. ACM Transactions on Database Systems 34, 호 4 (2009년 12월 14일): 20:1-20:42. https://doi.org/10.1145/1620585.1620587.](https://doi.org/10.1145/1620585.1620587))
+[^6]: [ACID(원자성Atomicity, 일관성Consistency, 고립성Isolation, 지속성Durability). 트랜잭션의 정상 작동을 보장하기 위해 지켜야 하는 4가지 성질.](https://ko.wikipedia.org/wiki/ACID)
+[^7]: [Cahill, Michael J., Uwe Röhm and Alan D. Fekete. “Serializable isolation for snapshot databases”. ACM Transactions on Database Systems 34, 호 4 (2009년 12월 14일): 20:1-20:42. https://doi.org/10.1145/1620585.1620587.](https://doi.org/10.1145/1620585.1620587)
 [^8]: [“Serializable Transactions \| CockroachDB Docs”. 2022년 3월 18일에 접근함. https://www.cockroachlabs.com/docs/stable/demo-serializable.html.](https://www.cockroachlabs.com/docs/stable/demo-serializable.html)
-[^9]: [켄트 벡, 김창준, 강규영. _테스트 주도 개발_. 서울: 인사이트, 2014](https://insightbooklist.wordpress.com/books/ppp/테스트-주도-개발/)
-[^10]: [블라디미르 코리코프, 임준혁. _단위 테스트_. 서울: 에이콘, 2021](http://www.acornpub.co.kr/book/unit-testing)
+[^9]: [카일 심슨, 이일웅. _You Don’t Know JS: this와 객체 프로토타입, 비동기와 성능_. 서울: 한빛미디어, 2017.](https://www.hanbit.co.kr/store/books/look.php?p_code=B7156943021)
+[^10]: [“유한 상태 기계”. 위키백과, 우리 모두의 백과사전, 2022년 3월 7일. https://ko.wikipedia.org/wiki/유한_상태_기계](https://ko.wikipedia.org/wiki/유한_상태_기계)
+[^11]: [켄트 벡, 김창준, 강규영. _테스트 주도 개발_. 서울: 인사이트, 2014](https://insightbooklist.wordpress.com/books/ppp/테스트-주도-개발/)
+[^12]: [블라디미르 코리코프, 임준혁. _단위 테스트_. 서울: 에이콘, 2021](http://www.acornpub.co.kr/book/unit-testing)
