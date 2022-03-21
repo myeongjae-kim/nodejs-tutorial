@@ -993,8 +993,9 @@ article
 ```
 
 여기서 테스트까지 얘기하진 않겠습니다. 테스트만으로도 책 한권은 거뜬하니까요. 켄트 벡의 『테스트 주도 개발』[^11]과 블라디미르 코리코프의 『단위 테스트』[^12]에
-제가 테스트에 대해서 하고 싶은 이야기 모두가, 그리고 훨씬 깊은 이야기가 있습니다.
-향로님의 [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js)](https://jojoldu.tistory.com/638)도 꼭 읽어보세요. 
+제가 테스트에 대해서 하고 싶은 이야기 모두가, 그리고 훨씬 깊은 이야기가 있습니다. 이규원님의 [현실 세상의 TDD](https://gyuwon.github.io/blog/2019/07/22/tdd-in-real-world.html)
+는 TDD에 대한 의심과 불신을 씻어내주는 글입니다. 향로님의 [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js)](https://jojoldu.tistory.com/638)도
+꼭 읽어보세요. 
 
 지금까지는 계속 클래스만 만들었습니다. 클래스들은 다른 클래스나 인터페이스를 의존합니다. 결국 어딘가에서 이 클래스과 인터페이스들의 관계를 엮어서 동작하게
 해야 합니다. 여기서 `ApplicationContext`가 등장합니다.
