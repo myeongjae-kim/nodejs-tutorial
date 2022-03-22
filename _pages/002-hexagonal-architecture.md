@@ -214,13 +214,13 @@ CQRS(Command Query Responsibility Segregation)라는 이름으로 부활합니�
 
 목록 조회와 개별 조회 기능 하나 하나가 비대해져서 두 개의 구현체로 쪼개야 하는 경우에도 골치아파집니다. 두 기능을 합친 인터페이스를 의존하는 모든 곳에
 변경사항이 발생해야 하니까요. 처음부터 ISP를 지켜서 두 개의 인터페이스로 분리했다면 객체 의존관계에서도 어떤 기능을 의존하는지 명확하게 파악할 수 있고,
-구현체를 두 개로 만들지 하나로 만들지에 대한 자유로운 선택도 할 수 있습니다.
+구현체를 두 개로 만들지 하나로 만들지에 대한 선택을 자유롭게 할 수 있습니다.
 
 #### 단일 책임 원칙 (SRP, Single Responsibility Principle)
 
 그래서 `ArticleQueryService`를 하나로 놔둬도 된다는 말인가요 두 개로 쪼개야 한다는 말인가요? 저는 이 부분은
 [취사선택(trade-off)](https://www.doopedia.co.kr/doopedia/master/master.do?_method=view&MAS_IDX=150902001512276)의 문제라고 생각합니다.
-'조회'를 하나의 책임으로 본다면 클래스를 하나만 만들어도 되고, 개별 조회와 목록 조회롸 책임을 나누어서 생각한다면 두 개의 클래스도 나누어도 되고요.
+'조회'를 하나의 책임으로 본다면 클래스를 하나만 만들어도 되고, 개별 조회와 목록 조회로 책임을 나누어서 생각한다면 두 개의 클래스도 나누어도 되고요.
 클래스를 하나만 만들면 코드량이 줄어들어서 좋고, 클래스를 두 개로 나누게 되면 단일 책임 원칙을 더 작은 단위로 지킬 수 있어서 좋습니다.
 
 그러면 굳이 Command와 Query도 나누지 않고 하나의 `ArticleService`에서 3개의 인터페이스를 구현하면 안되나요? 당연히 됩니다!
@@ -281,14 +281,14 @@ CQRS(Command Query Responsibility Segregation)라는 이름으로 부활합니�
 문제가 없지만, 원본 DB에 변경사항을 반영하면서 문제가 발생합니다.
 
 대표적인 예시가 Doctor Duty 문제인데요, 이 문제는 멀티쓰레딩 환경에서 snapshot isolation 방식을 사용하면서도 트랜잭션의 정상 작동을 완벽하게 보장하는
-격리 레벨인 serializable isolation이 가능하는 것을 증명한 기념비적인 논문인 [Serializable Isolation for Snapshot Databases](https://courses.cs.washington.edu/courses/cse444/08au/544M/READING-LIST/fekete-sigmod2008.pdf)[^7]에서
+격리 레벨인 serializable isolation이 가능하다는 것을 증명한 기념비적인 논문인 [Serializable Isolation for Snapshot Databases](https://courses.cs.washington.edu/courses/cse444/08au/544M/READING-LIST/fekete-sigmod2008.pdf)[^7]에서
 사용한 예시입니다. 
 
 Doctor Duty 문제는 Cockroach DB의 Serializable Transaction[^8] 문서에서 친절하게 설명하고 있습니다.
 
 > 시나리오
 >
-> - 의사는 휴게 대기([온콜, on call](https://www.doctorsnews.co.kr/news/articleView.html?idxno=129469) 교대근무 일정을 관리할 수 있는 애플리케이션으로 관리할 수 있다.
+> - 의사는 휴게 대기([온콜, on call](https://www.doctorsnews.co.kr/news/articleView.html?idxno=129469)) 교대근무 일정을 관리할 수 있는 애플리케이션으로 관리할 수 있다.
 > - 최소한 한 명의 의사는 휴게 대기를 해야한다는 규칙이 있다.
 > - 두 명의 의사가 특정 교대근무에 대기 중이고, 이들이 거의 동시에 교대근무에 대한 휴가를 요청하려고 한다.
 > - Postgres DB의 기본 트랜잭션 격리 레벨인 `READ COMMITTED`에서는 [write skew](https://www.cockroachlabs.com/docs/stable/demo-serializable.html#write-skew)
@@ -312,9 +312,9 @@ Doctor Duty 문제는 Cockroach DB의 Serializable Transaction[^8] 문서에서 
 애플리케이션의 경계를 확실하게 해주는 역할을 합니다. 다만 편의를 위해서 타입스크립트의 `type` 예약어로 선언했습니다. 좀 더 강력하게 `Article`을 보호하기
 위해서 타입 대신 클래스로 만들어도 좋습니다.
 
-무조건 `Article`이 애플리케이션 바운더리 바깥으로 빠져나가면 안되는 걸까요? 애플리케이션 설계에서 무조건은 없습니다. 소수의 개발자가 적은 양의
-코드베이스에서 개발하고 유지보수하는 상황이라면 뭔들 불가능할까요, 그들간의 일관성만 맞추면 됩니다. 하지만 다수의 개발자가 투입된 큰 프로젝트에서는 이 규칙들을
-엄격하게 지키는 편이 좋다고 생각합니다.
+무조건 `Article`이 애플리케이션 바운더리 바깥으로 빠져나가면 안되는 걸까요? 무조건은 없습니다. 소수의 개발자가 적은 양의 코드베이스에서 개발하고
+유지보수하는 상황이라면 뭔들 불가능할까요, 그들간의 일관성만 맞추면 됩니다. 하지만 다수의 개발자가 투입된 큰 프로젝트에서는 이 규칙들을 엄격하게 지키는 편이
+좋다고 생각합니다.
 
 ##### 얘네들 DTO(Data Transfer Object) 아니에요?
 
@@ -557,7 +557,7 @@ assert(JSON.stringify(csvToObjectFunctional(input)) === JSON.stringify(expected)
 ```
 
 절차형 구현인 `csvToObjectProcedural` 함수는 매개변수인 `csv`를 순회하기 전에 리턴값을 보관할 `objs` 배열을 선언합니다. 그리고 `csv`를 순회하면서
-`Output` 객체를 만들어서 `objs` 배열에 `push`합니다. `Output` 객체를 만들기 위해서도 `csv`의 1번 인덱스 이하를 순회하면서 `obj` 객체에
+`Output` 객체를 만들어서 `objs` 배열에 `push`합니다. `Output` 객체를 만들기 위해서도 `csv`의 1번 인덱스 이상을 순회하면서 `obj` 객체에
 키와 값을 채워넣습니다.
 
 함수형 구현인 `csvToObjectFunctional` 함수는 매개변수인 `csv`를 일단 `header`와 `rows`로 나눕니다. 이는 함수형 프로그래밍에서
@@ -647,8 +647,8 @@ SELECT id, subject, content FROM article;
 ```
 
 절차형에서 선언형으로의 이동은 구현체밖에 없는 세상에서 인터페이스와 구현체가 분리된 세상으로의 이동이라고도 말할 수 있습니다. 구현체와 사용자 사이에
-선언형 언어라는 계층을 만들어서 여백을 확보합니다. 이 여백때문에 사용자는 권한과 책임에 제약을 받지만 더 쉽게 구현체를 사용할 수 있고, 구현체의 변경이
-언어의 변경까지 이어지지 않는 선에서 구현체는 자유롭게 바뀔 수 있습니다.
+선언형 언어라는 계층을 만들어서 여백을 확보합니다. 이 여백때문에 사용자는 권한과 책임에 제약을 받지만 더 쉽게 구현체를 사용할 수 있고, 구현체는 변경사항이
+언어에 영향을 미치지 않는 선에서 자유롭게 바뀔 수 있습니다.
 
 #### incoming 어댑터는 어디갔어요?
 
@@ -889,7 +889,7 @@ export class ApplicationByStateManager {
 ```
 
 `StateManager`의 상태에 따라서 `ArticleQueryController`, `ArticleCommandController`를 호출합니다. 컨트롤러 클래스가 입출력 담당하고,
-사용자의 입력은 다시 `StateManager`에 들어가서 다음 상태를 유발합니다. 컴퓨터는 유한 상태 기계(Finite State Machine)[^10]이지만, 특히 UI와
+사용자의 입력은 다시 `StateManager`에 들어가서 다음 상태를 유발합니다. 원래 컴퓨터가 유한 상태 기계(Finite State Machine)[^10]이지만, 특히 UI와
 관련된 코드를 작성할 때 이 개념이 유용합니다.
 
 `StateManager`를 직접 구현해서 애플리케이션을 만들기도 했지만, [redux](https://redux.js.org)와 [mobx](https://mobx.js.org)를
@@ -992,7 +992,7 @@ article
                     └── StateManager.unit.test.ts
 ```
 
-여기서 테스트까지 얘기하진 않겠습니다. 테스트만으로도 책 한권은 거뜬하니까요. 켄트 벡의 『테스트 주도 개발』[^11]과 블라디미르 코리코프의 『단위 테스트』[^12]에
+여기서 테스트까지 얘기하진 않겠습니다, 테스트만으로도 책 한권은 거뜬하니까요. 켄트 벡의 『테스트 주도 개발』[^11]과 블라디미르 코리코프의 『단위 테스트』[^12]에
 제가 테스트에 대해서 하고 싶은 이야기 모두가, 그리고 훨씬 깊은 이야기가 있습니다. 이규원님의 [현실 세상의 TDD](https://gyuwon.github.io/blog/2019/07/22/tdd-in-real-world.html)
 는 TDD에 대한 의심과 불신을 씻어내주는 글입니다. 향로님의 [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js)](https://jojoldu.tistory.com/638)도
 꼭 읽어보세요. 
