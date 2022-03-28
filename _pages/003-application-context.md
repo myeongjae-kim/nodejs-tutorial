@@ -42,7 +42,7 @@ layout: post
 
 <figure>
     <img alt="Deadlock Crossroad" src="/res/6-circular-dependency.svg" style="width: initial" />
-    <figcaption><pre>echo "digraph { A -> B \n B -> A}" | dot -Tsvg > cycle-dependency.svg</pre></figcaption>
+    <figcaption><pre>echo "digraph { A -> B \n B -> A}" | dot -Tsvg > circular-dependency.svg</pre></figcaption>
 </figure>
 
 ### 마이크로서비스의 환형 의존 관계
