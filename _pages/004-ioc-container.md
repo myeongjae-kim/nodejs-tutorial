@@ -516,5 +516,5 @@ InversifyJS를 사용하는 것은 과하지만 학습을 위해 사용해봤습
 
 [^1]: [https://ko.wikipedia.org/wiki/메타프로그래밍](https://ko.wikipedia.org/wiki/메타프로그래밍)
 [^2]: [https://en.wikipedia.org/wiki/Reflective_programming](https://en.wikipedia.org/wiki/Reflective_programming)
-[^3]: [https://stackoverflow.com/a/6551303/14659782](https://stackoverflow.com/a/6551303/14659782
+[^3]: [https://stackoverflow.com/a/6551303/14659782](https://stackoverflow.com/a/6551303/14659782)
 [^4]: [https://martinfowler.com/articles/injection.html#InversionOfControl](https://martinfowler.com/articles/injection.html#InversionOfControl) <br />'제어의 역전이라는 단어의 역사에 대해서는 다음 페이지 하단의 어원학(Etymology)를 참고하세요: [https://martinfowler.com/bliki/InversionOfControl.html](https://martinfowler.com/bliki/InversionOfControl.html) <br /> 위 문서에서는 라이브러리와 프레임워크의 차이에 대해서도 알 수 있습니다. 웹 프론트엔드 라이브러리중에서 [VueJS](https://vuejs.org)는 프레임워크, [React](https://reactjs.org)는 라이브러리라고 자신들을 소개하고 있습니다.
