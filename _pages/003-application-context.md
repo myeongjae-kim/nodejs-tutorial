@@ -24,7 +24,7 @@ layout: post
 </figure>
 
 저는 어떤 클래스가 다른 클래스의 인스턴스를 의존해야 할 때 모두 생성자에서 인스턴스들을 주입받도록 했습니다. 어떤 클래스의 인스턴스가 만들어지려면 다른
-클래스의 인스턴스가 필요하기 때문에, 만약 클래스들이 생성자 매개변수로 서로를 의존하게 된다면(=환형 의존, Cycle Dependency) 인스턴스를 만들 수 없습니다.
+클래스의 인스턴스가 필요하기 때문에, 만약 클래스들이 생성자 매개변수로 서로를 의존하게 된다면(=환형 의존, Circular Dependency) 인스턴스를 만들 수 없습니다.
 결국 제가 작성한 클래스들의 의존 관계를 그래프로 그려보면 DAG(Directed Acyclic Graph)가 됩니다. 위 그래프에 선이 많지만... 잘 보면 좌->우 방향의
 화살표만 있고 우->좌 방향의 화살표는 없기 때문에 환형 의존이 발생하지 않는다는 것을 알 수 있습니다.
 
@@ -41,7 +41,7 @@ layout: post
 없애서 대처하면 됩니다. `A`와 `B`중 둘 중 하나를 죽여버려야 하는데 무엇을 죽일지는 상황에 따라 달라집니다. 둘 다 죽여버리고 새로 시작하는 방법도 있습니다.
 
 <figure>
-    <img alt="Deadlock Crossroad" src="/res/6-cycle-dependency.svg" style="width: initial" />
+    <img alt="Deadlock Crossroad" src="/res/6-circular-dependency.svg" style="width: initial" />
     <figcaption><pre>echo "digraph { A -> B \n B -> A}" | dot -Tsvg > cycle-dependency.svg</pre></figcaption>
 </figure>
 
