@@ -265,7 +265,7 @@ ServiceIdentifier가 충돌하지 않을 수 있습니다. 하지만 일반적 �
 ServiceIdentifier들이 서로 멀리 떨어져 있어 실수로라도 다른 값을 `import`할 수 없을 정도라면 문자열 대신 `symbol`을 사용하는 것이 나을 수도
 있습니다. 당연히 우리 게시판 애플리케이션은 그 정도가 아니므로 저는 문자열만 사용하겠습니다.
 
-추가로 `Symbol()`대신 `Symbol.for()`를 사용하는 경우는 `symbol`을 사용하지만 '매번 유일함(guaranteed to be unique)'의 의미가 퇴색이 됩니다.
+추가로 `Symbol()`대신 `Symbol.for()`를 사용하는 경우는 `symbol`을 사용하지만 '유일함 보장(guaranteed to be unique)'의 의미가 퇴색이 됩니다.
 `Symbol.for()`는 전역 `symbol` 공간에 매개변수의 값이 있으면 `symbol`을 생성하지 않고 이미 생성되어 있는 `symbol`을 리턴합니다. 매개변수로 처음
 들어오는 값이라면 새로운 `symbol`을 생성합니다.
 
