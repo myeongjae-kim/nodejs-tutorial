@@ -221,9 +221,8 @@ InvresifyJS에서는 제어의 역전 컨테이너 안의 인스턴스들을 관
 - `Abstract<T>`: 추상 클래스를 의미합니다. `Newable<T>`은 일반 클래스를 ServiceIdentifier로 사용할 수 있게 해주는 반면, `Abstract<T>`는 추상 클래스를 ServiceIdentifier로 사용할 수 있게 해줍니다.
   - [https://github.com/inversify/InversifyJS/commit/38b9a8a888ef4430bc60cda900abe118d225c35d](https://github.com/inversify/InversifyJS/commit/38b9a8a888ef4430bc60cda900abe118d225c35d)
 
-타입스크립트를 자바스크립트로 컴파일하면 `class`에 대한 정보는 남아있지만 `interface`와 `type` 정보는 사라집니다. 생성자 매개변수를 `class`대신
-`interface`나 `type`으로 선언한다면 의존성 주입을 위해서 필수로 ServiceIdentifier를 사용해야 합니다. 자바스크립트가 아니라 타입스크립트를 실행할
-수 있는 엔진이 탄생해서 런타임에 `interface`와 `type`정보에 접근할 수 있다면 `InversifyJS`보다 더 진보된 프레임워크가 등장할 수 있습니다.
+타입스크립트를 자바스크립트로 컴파일하면 `class`에 대한 정보는 남아있지만 `interface`와 `type` 정보는 사라집니다. 자바스크립트가 아니라 타입스크립트를
+실행할 수 있는 엔진이 탄생해서 런타임에 `interface`와 `type`정보에 접근할 수 있다면 `InversifyJS`보다 더 진보된 프레임워크가 등장할 수 있습니다.
 
 공식 문서에서는 ServiceIdentifier로 `symbol`을 사용하기를 권장하지만, 저는 `string`을 사용하는 편이 좋다고 생각합니다.
 
