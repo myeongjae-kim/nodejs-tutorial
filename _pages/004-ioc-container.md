@@ -304,12 +304,12 @@ export interface DiConfig {
 
 저는 6개의 `DiConfig` 구현체를 만들었습니다.
 
-- [src/article/adapter/ArticleIncomingConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-complete/src/article/adapter/ArticleIncomingConfig.ts)
-- [src/article/adapter/ArticleOutgoingConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-complete/src/article/adapter/ArticleOutgoingConfig.ts)
-- [src/article/adapter/ArticleStateManagerConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-complete/src/article/adapter/ArticleStateManagerConfig.ts)
-- [src/article/adapter/ArticleUiConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-complete/src/article/adapter/ArticleUiConfig.ts)
-- [src/common/adapter/ApplicationConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-complete/src/common/adapter/ApplicationConfig.ts)
-- [src/common/adapter/CliConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-complete/src/common/adapter/CliConfig.ts)
+- [src/article/adapter/ArticleIncomingConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-done/src/article/adapter/ArticleIncomingConfig.ts)
+- [src/article/adapter/ArticleOutgoingConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-done/src/article/adapter/ArticleOutgoingConfig.ts)
+- [src/article/adapter/ArticleStateManagerConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-done/src/article/adapter/ArticleStateManagerConfig.ts)
+- [src/article/adapter/ArticleUiConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-done/src/article/adapter/ArticleUiConfig.ts)
+- [src/common/adapter/ApplicationConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-done/src/common/adapter/ApplicationConfig.ts)
+- [src/common/adapter/CliConfig.ts](https://github.com/myeongjae-kim/nodejs-tutorial-example/blob/chapter-4-done/src/common/adapter/CliConfig.ts)
 
 그리고 `src/initialize-container.ts`에서 아래처럼 컨테이너를 준비합니다.
 
