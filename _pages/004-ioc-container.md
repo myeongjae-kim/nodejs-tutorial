@@ -31,6 +31,9 @@ applicationByStateManager.run();
 
 `ApplicationByStateManager` 클래스의 인스턴스를 `new` 예약어 대신 `Reflect.consturct` 함수를 사용해서 생성했습니다.
 클래스는 `clazz`에, 생성자 매개변수는 `arg0`, `arg1`, `arg2`에 할당하고 `Reflect.construct(clazz, [arg0, arg1, arg2])`를 호출합니다.
+`new` 예약어를 대신 `Reflect.construct` 함수를 호출하니 뭔가 자동화의 희망이 보이는군요.. 최소한 코드를 생성해서 실행하는
+일(e.g. `eval('new ApplicationByStateManager(...)')`, `eval` 사용을 멈춰주세요!)은 안 해도 됩니다. `Reflect.construct`에 넣을
+클래스와 생성자 매개변수들만 잘 찾아내면 됩니다.
 
 어떤 방법으로든 **클래스**와 **생성자에 필요한 매개변수**에 접근할 수 있으면 리플렉션으로 인스턴스를 생성할 수 있습니다. 생성한 인스턴스가 **다른 클래스 생성자의
 몇 번째 매개변수**로 들어간다는 정보만 추가로 알 수 있으면 우리는 애플리케이션 컨텍스트를 생성할 때 했던 작업들을 자동화할 수 있습니다. 클래스 인스턴스의
