@@ -372,7 +372,7 @@ Error: Cannot apply @injectable decorator multiple times.
 안에서 여러 개의 인스턴스가 생성되지 않게끔 기본 스코프를 `Singleton`으로 지정했습니다.
 
 컨테이너를 생성할 때 기본 스코프를 지정하지 않으면 `Transient`로 지정됩니다. 이 상태로 애플리케이션을 실행하면 글을 작성해도 목록에서 확인할 수 없게
-됩니다. `ArticleInMemoryRepository` 객체를 하나만 생성하는게 아니라 컨테이너가 요청을 받을 때마다 생성하기 때문에 작성, 목록조회, 개별조회용으로
+됩니다. `ArticleInMemoryRepository` 객체를 하나만 생성하는게 아니라 객체를 주입할 때마다 생성하기 때문에 작성, 목록조회, 개별조회용으로
 총 3개의 `ArticleInMemoryRepository`의 인스턴스가 생성이 됩니다. 인스턴스마다 `Article`을 따로 관리하므로 글을 작성하더라도 목록조회 화면에서
 글을 볼 수 없게 됩니다.
 
