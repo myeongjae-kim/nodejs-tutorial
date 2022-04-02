@@ -501,6 +501,11 @@ inversion of control container for JavaScript & Node.js apps powered by TypeScri
 컨테이너라고 지었습니다. 제어의 역전 컨테이너를 처음 접해본다면 복잡하고 어렵게 느껴지는게 당연합니다. 그냥 애플리케이션 컨텍스트를 수동으로 작성해서 관리하는게
 나아보일 수도 있습니다. 하지만 확장성(Scalability) 관점에서 본다면 수동으로 관리하는 애플리케이션 컨텍스트는 금방 한계를 맞게 됩니다.
 
+<figure>
+    <img alt="Scalability and Productivity" src="/res/10-productivity.png" />
+    <figcaption>이는 마이크로서비스 패턴을 도입했을 때 작은 규모에서는 생산성이 줄어들 수 있지만,<br/>큰 규모로 가면서 생산성 저하 속도를 줄일 수 있다는 관점과 유사합니다.<br/>출처: <a href="https://martinfowler.com/bliki/MicroservicePremium.html" target="_blank">https://martinfowler.com/bliki/MicroservicePremium.html</a></figcaption>
+</figure>
+
 작은 애플리케이션에 알맞은 아키텍처가 있고 대규모 애플리케이션에 알맞은 아키텍처가 있습니다. 적은 트래픽에 알맞은 백엔드 아키텍처가 있고 대용량 트래픽에 알맞은
 백엔드 아키텍처가 있습니다. 보통 규모가 작을 때 통하는 방법은 쉽고 간단하고, 규모가 클 때 통하는 방법은 보다 복잡하고 어렵습니다. 간단한 게시판 애플리케이션에
 InversifyJS를 사용하는 것은 과하지만 학습을 위해 사용해봤습니다. InversifyJS를 사용하면 애플리케이션의 규모가 커지더라도 일관적인 방법으로 클래스들의
