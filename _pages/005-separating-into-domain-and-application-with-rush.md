@@ -9,7 +9,7 @@ layout: post
 ## Lerna와 Rush
 
 node 기반 프로젝트를 모노레포로 구성할 수 있게 도와주는 도구가 여럿 있습니다. 저는 실무에서 2020년에 [Lerna](https://lerna.js.org)를 사용해
-모노레포로 프로젝트를 구성한 경험이 있습니다. JVM 진영의 [gradle](https://gradle.org)의 멀티모듈 구조에 익숙해 있던 터라 모노레포의 개념을 이해하기는
+모노레포로 프로젝트를 구성한 경험이 있습니다. JVM 진영의 [gradle](https://gradle.org) 멀티모듈 구조에 익숙해 있던 터라 모노레포의 개념을 이해하기는
 쉬웠지만, Lerna로 프로젝트를 구성해보니 설정이 복잡했고 `npm`만으로는 해결할 수 없는 문제가 있어서
 [직접 심볼릭 링크를 업데이트하는 쉘 스크립트를 작성해서 사용](https://myeongjae.kim/blog/2020/06/12/copy-symbolic-link-of-relative-path)했습니다(이 문제는 Lerna와 yarn workspace를 함께 사용하는 방식으로도 해결이 가능합니다).
 
@@ -19,16 +19,15 @@ node 기반 프로젝트를 모노레포로 구성할 수 있게 도와주는 �
 Rush로 프로젝트 구성을 시도해봤는데, 이 때는 Next.js와 Rush가 호환이 되지 않아 Lerna를 사용했었습니다. 정성대님의 예시에서는 Rush에서
 Next.js가 잘 작동합니다(그냥 그 때 제가 설정을 제대로 못한 것 같습니다). 
 
-Rush는 [npm](https://docs.npmjs.com), [pnpm](https://pnpm.io), [yarn](https://yarnpkg.com) 모두 사용할 수 있지만 pnpm을
+### PNPM?
+
+pnpm은 npm같은 패키지 매니저입니다. Rush는 [npm](https://docs.npmjs.com), [pnpm](https://pnpm.io), [yarn](https://yarnpkg.com) 모두 사용할 수 있지만 pnpm을
 권장합니다 ([NPM vs PNPM vs Yarn \| Rush](https://rushjs.io/pages/maintainer/package_managers/)). npm은 옛날 버전인 4.5.0을
 권장하고, yarn은 사용은 가능하지만 [왠지 자신없어 하는 모습](https://rushjs.io/pages/maintainer/package_managers/#considerations-for-yarn)입니다.
 우리의 게시판 애플리케이션 정도는 아마 npm 최신 버전에서도 잘 작동할 것 같아서 일단 프로젝트는 Rush와 npm을 사용한 뒤, 모노레포 구성 후에
 npm에서 pnpm으로 마이그레이션을 해보겠습니다.
 
-### PNPM?
-
-pnpm은 npm같은 패키지 매니저입니다. pnpm은 npm을 사용하면서 겪을 수 있는
-[Phantom dependencies](https://rushjs.io/pages/advanced/phantom_deps/) 문제와
+pnpm은 npm을 사용하면서 겪을 수 있는 [Phantom dependencies](https://rushjs.io/pages/advanced/phantom_deps/) 문제와
 [NPM doppelgangers](https://rushjs.io/pages/advanced/npm_doppelgangers/) 문제를 해결했습니다. 이 문제들은 npm이 모든 의존성을
 `node_modules`에 평평flat하게(=의존성의 의존성, 의존성의 의존성의 의존성... 이 모두 `node_modules` 디렉토리로 올라오는hoisted 것) 구성하기
 때문에 발생합니다. 우리 프로젝트도 `dependencies`와 `devDependencies` 합쳐서 18개의 의존성을 사용하지만 `node_modules`에는 435개의 디렉토리가
@@ -266,14 +265,14 @@ x) 종료
 `domain/board-domain` 패키지를 추가해서 `app/board-cli/src/article`의 `domain`과 `application` 디렉토리를 옮겨 도메인 패키지를
 만든다면 디렉토리 구조를 어떻게 만들어야 할까요?
 
-- `domain/board-domain/article/domain`
-- `domain/board-domain/article/application`
+- `domain/board-domain/src/article/domain`
+- `domain/board-domain/src/article/application`
 
 그냥 그대로 옮기면 이렇게 두 개의 디렉토리가 생길텐데, 도메인 패키지의 `domain` 디렉토리라니.. 디렉토리 경로에서 중복이 발생하는 것 같아 영 찜찜하니까
 `domain` 디렉토리를 `model`로 변경하겠습니다.
 
-- `domain/board-domain/article/model`
-- `domain/board-domain/article/application`
+- `domain/board-domain/src/article/model`
+- `domain/board-domain/src/article/application`
 
 `model` 디렉토리는 '도메인 모델'을 의미하게 됩니다. 즉 엔티티만 있는 디렉토리입니다. `application` 디렉토리는 엔티티를 바탕으로 수행하는 비즈니스
 로직이 들어있는 디렉토리가 됩니다. 그리고 디렉토리 구조에서 `application`이라는 단어는 이미 `app`이라는 디렉토리로 `app/board-cli`처럼 실행 가능한
@@ -284,7 +283,7 @@ x) 종료
 그냥 밖으로 꺼내놓으면 어떨까요? 아래와 같은 트리 구조도 괜찮아 보입니다.
 
 ```
-domain/board-domain/article
+domain/board-domain/src/article
 ├── ArticleCommandService.ts
 ├── ArticleQueryService.ts
 ├── port
@@ -624,10 +623,519 @@ dependencies.svg
 ### `board-cli`에서 도메인 분리하기
 
 [이전에 설계했던 대로](/pages/005-separating-into-domain-and-application-with-rush/#도메인-패키지-디렉토리-설계) `board-cli`에 있는
-도메인 영역을 `board-domain`패키지로 가져옵니다.
+도메인 영역을 `board-domain`패키지로 가져옵니다. 음.. 어떻게 하면 좋을까요? 파일을 이동하면 IDE에서 `import`를 자동으로 변경하면서 뭔가 꼬일 것
+같으니 `application`과 `domain` 디렉토리를 복사해서 `board-domain` 패키지에 붙여넣고 설계한 대로 디렉토리를 변경하겠습니다: [https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/6e9642e87566dc9637f2cbaf6340f04bbbfcad35](https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/6e9642e87566dc9637f2cbaf6340f04bbbfcad35)
 
-TODO
+기존에 작성했던 테스트들은 `board-domain`에서도 통과합니다. 도메인 영역을 외부 의존성 없이 순수한 타입스크립트로만 작성했기 떄문에 `board-domain`에
+의존성을 추가하지 않아도 됩니다.
 
-## 중복 설정 제거하기
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ rushx test
+Test Suites: 5 passed, 5 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        3.41 s, estimated 4 s
+Ran all test suites.
+```
 
-## PNPM 적용
+`rush build`를 실행해서 `domain/board-domain/dist` 디렉토리를 업데이트한 뒤에 `app/board-cli/src/application`,
+`app/board-cli/src/domain` 디렉토를 과감하게 제거하고 오류가 발생하는 `import`에 대해서 `board-domain`을 의존하도록 변경합니다.
+`board-domain/src/index.ts`의 `foo()` 함수는 더 이상 필요 없으니 제거합니다: [https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/145a603e565294b357834a083bd711c5610ec554](https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/145a603e565294b357834a083bd711c5610ec554)
+
+`rush build`를 실행해서 빌드가 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ rush build
+
+==[ board-domain ]=================================================[ 1 of 2 ]==
+"board-domain" completed successfully in 4.39 seconds.
+
+==[ app-board-cli ]================================================[ 2 of 2 ]==
+"app-board-cli" completed successfully in 5.91 seconds.
+
+
+
+==[ SUCCESS: 2 operations ]====================================================
+
+These operations completed successfully:
+  app-board-cli    5.91 seconds
+  board-domain     4.39 seconds
+
+
+rush build (10.34 seconds)
+```
+
+빌드가 잘 되네요. `app/board-cli` 디렉토리로 이동해서 애플리케이션 실행이 잘 되는지 `rushx start`로 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ cd ../../app/board-cli
+~/nodejs-tutorial-example-rush/app/board-cli$ rushx start
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+```
+
+실행도 잘 됩니다.
+
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-use-domain-package](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-use-domain-package)에서 확인할 수 있습니다.
+
+### 배포용 `tar` ball 만들기
+
+로컬에서 빌드하고 실행까지 잘 되는건 확인했습니다. 배포용 압축 파일은 어떻게 만들 수 있을까요? `node_modules`의 디렉토리가 심볼릭 링크로 연결되어 있기
+때문에 `app/board-domain/node_modules`가 압축 파일에 포함되면 `app/board-domain/node_modules/board-domain`도 포함되고, 다시
+`app/board-domain/node_modules/board-domain/node_modules`도 포함되고... 압축파일의 크기가 무진장 늘어나게 됩니다. 그렇다고 심볼릭 링크만
+압축해버리면 원본을 찾을수가 없으니, 원본을 포함해서 압축하려면 프로젝트 전체를 압축해야 합니다. 세상에.. 아무도 그걸 원하진 않을거에요. 그리고 개발용
+의존성을 제거하고 실행용 의존성만 `node_modules`에 포함해서 배포해야 할 코드의 양도 줄여야 합니다.
+
+이 모든것을 위해서 [Rush는 `rush deploy`라는 커맨드를 준비](https://rushjs.io/pages/maintainer/deploying/)해놨습니다. Rush가 Lerna에
+비해서 편한 부분이 많지만 정말 배포용 빌드를 만드는 과정은 Lerna에 비해서 훨씬 편합니다.
+
+먼저 `rush init-deploy`로 배포 설정을 추가합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush init-deploy --project app-board-cli
+
+Starting "rush init-deploy"
+
+Creating scenario file: .../nodejs-tutorial-example-rush/common/config/rush/deploy.json
+
+File successfully written. Please review the file contents before committing.
+```
+
+`common/config/rush/deploy.json`파일이 생성되었습니다. 이 파일을 따로 수정해주진 않아도 되고, 배포용 빌드에 `app/board-cli/dist/index.js`
+뿐만 아니라 `app/board-cli/dist` 디렉토리 전체가 포함되도록 `app/board-cli/package.json`에 `files` 속성을 추가합니다. 
+
+```json-doc
+// app/board-cli/package.json
+{
+  ...,
+  "files": [
+    "dist"
+  ],
+  ...
+}
+```
+
+`rush deploy`를 입력하면 `common/config/rush/deploy.json`을 바탕으로 배포용 빌드를 `common/deploy/app/board-cli`에 생성합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush deploy
+
+Starting "rush deploy"
+
+Loading deployment scenario: /Users/mj/projects/nodejs-tutorial-example-rush/common/config/rush/deploy.json
+Deploying to target folder:  /Users/mj/projects/nodejs-tutorial-example-rush/common/deploy
+Main project for deployment: app-board-cli
+
+Analyzing project: app-board-cli
+
+Copying folders...
+Writing deploy-metadata.json
+Creating symlinks...
+
+The operation completed successfully.
+
+~/nodejs-tutorial-example-rush$ node common/deploy/app/board-cli/dist/index.js
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+```
+
+실행이 잘 됩니다. `node_modules`를 확인해보면 `devDependencies`의 개발 의존성 없이 `dependencies`의 의존성만 포함되어 있음을 확인할 수 있습니다.
+
+```
+common/deploy
+├── app
+│   └── board-cli
+│       ├── dist
+│       └── node_modules
+│           ├── @reduxjs
+│           ├── board-domain -> ../../../domain/board-domain
+│           ├── inversify -> ../../../common/temp/node_modules/inversify
+│           ├── mobx -> ../../../common/temp/node_modules/mobx
+│           └── reflect-metadata -> ../../../common/temp/node_modules/reflect-metadata
+├── common
+│   └── temp
+│       └── node_modules
+│           ├── @babel
+│           ├── @reduxjs
+│           ├── immer
+│           ├── inversify
+│           ├── mobx
+│           ├── redux
+│           ├── redux-thunk
+│           ├── reflect-metadata
+│           ├── regenerator-runtime
+│           └── reselect
+└── domain
+    └── board-domain
+        ├── dist
+        └── src
+```
+
+`board-domain`은 `dependencies`가 없어서 `node_modules` 디렉토리 자체가 없군요. `board-cli/node_modules`를 보면 심볼릭 링크로
+`common/temp/node_modules`이하의 디렉토리와 `domain/board-domain` 디렉토리를 참조하는 것을 확인할 수 있습니다. 결국 `common/deploy`
+디렉토리는 그 자체로 완결성을 가지므로 빌드 결과물과 호환되는 버전의 node가 설치되어 있는 환경이라면 어디서든지 `app/board-cli/dist/index.js`를
+실행해서 우리의 게시판 애플리케이션을 실행할 수 있게 됩니다.
+
+```
+~/nodejs-tutorial-example-rush$ tar -czvf bundle.tar common/deploy
+~/nodejs-tutorial-example-rush$ mv bundle.tar ~/Downloads && cd ~/Downloads
+~/Downloads$ tar -xzvf bundle.tar
+~/Downloads$ node common/deploy/app/board-cli/dist/index.js # 이하 4개의 커맨드는 모두 동일한 의미를 가진다.
+~/Downloads$ node common/deploy/app/board-cli/dist/index    # index.js 파일을 실행한다.
+~/Downloads$ node common/deploy/app/board-cli/dist          # dist 디렉토리의 index.js 파일을 실행한다.
+~/Downloads$ node common/deploy/app/board-cli               # package.json의 `main` 속성 값인 dist/index.js 파일을 실행한다.
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+```
+
+빌드 결과물을 압축해서 `~/Downlaods` 디렉토리에 배포하고 실행해봤습니다.
+
+모노레포에서 복수의 애플리케이션을 관리해야 한다면, 예를들어 게시판 애플리케이션을 `app/board-react` 디렉토리에 리액트로 구현했다면
+[기존의 `deploy.json`의 `"deploymentProjectNames"`에 프로젝트 이름을 추가](https://rushjs.io/pages/maintainer/deploying/#multiple-deployments-using-the-same-config-file)할 수도 있고,
+[`deploy-app-board-api.json`같이 새로운 배포 설정용 json을 추가](https://rushjs.io/pages/maintainer/deploying/#multiple-deployments-using-different-config-files)해서 빌드를 할 수 도 있습니다.
+
+### 현실세계의 모노레포
+
+현실에선 지금보다 더 많은 패키지가 필요합니다. 프로젝트 전체에서 공통으로 쓰이는 `core` 패키지, 데이터베이스나 메시지 큐등 외부 의존성에 대한 설정이
+담겨 있는 `configruation/xxx` 패키지, 혹은 원격 API를 호출하기 위한 `client/xxx-client` 등 필요에 따라 추가로 패키지를 구성하면 됩니다. 
+
+노드 진영에서는 하나의 저장소 안에 여러 개의 프로젝트가 있는 구조를 모노레포라 부르지만 JVM 진영에서는 멀티모듈이라고 부릅니다. 권용근님의 글
+[멀티모듈 설계 이야기 with Spring, Gradle](https://techblog.woowahan.com/2637/)은 제가 실무에서 프로젝트를 구성하면서 모듈을 나누는 기준을
+세울 때 정말 많은 도움을 받았던 글입니다.
+
+클래스든 패키지든 모듈이든 아키텍처의 목표는 동일합니다: **높은 응집도와 낮은 결합도를 가지도록 코드를 나누고 비즈니스 로직이 세부사항에 오염되지 않도록 보호하기.**
+아키텍처가 목표를 제대로 달성한다면 우리는 [**비즈니스 요구사항에 빠르게 대응할 수 있는 유연한 프로그램**](/#결국엔-비즈니스)이라는 이상에 한 걸음 다가갈 수 있게 됩니다.
+
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-deploy](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-deploy)에서 확인할 수 있습니다.
+
+## PNPM 사용하기
+
+다행히 npm을 사용해도 우리에게 필요한 Rush의 기능은 정상작동을 합니다. 하지만 [속도도 빠르고 디스크 용량도 적게 차지하고 Rush에서 권장하는 pnpm](#pnpm)을 써보면
+어떨까요? [https://pnpm.io/installation](https://pnpm.io/installation)을 참고해서 pnpm을 설치합니다. 저는 macOS를 사용하고 있으므로
+`brew install pnpm`으로 설치하겠습니다.
+
+```
+~/nodejs-tutorial-example-rush$ brew install pnpm
+...
+~/nodejs-tutorial-example-rush$ pnpm --version
+6.32.4
+```
+
+프로젝트 root에 있는 `rush.json`에서 `"npmVersion": "6.14.16"` 대신 `"pnpmVersion": "6.32.4"`를 사용하도록 변경합니다.
+
+```json-doc
+// rush.json
+{
+  ...,
+  "pnpmVersion": "6.32.4",
+  // "npmVersion": "6.14.16",
+  ...
+}
+```
+
+[`rush update --full --purge`를 입력](https://rushjs.io/pages/maintainer/package_managers/#specifying-your-package-manager)합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush update --full --purge
+
+ERROR: An unrecognized file "npm-shrinkwrap.json" was found in the Rush config folder:
+/Users/mj/projects/nodejs-tutorial-example-rush/common/config/rush
+```
+
+음.. `npm-shrinkwrap.json` 때문에 실패하는군요. 이 파일은 뭘까요?
+
+> What is this "shrinkwrap file"?
+> 
+> Most projects don't specify an exact version such as 1.2.3 for a dependency, but instead specify SemVer range such as 1.x or ^1.2.3. By itself, this would mean that what gets installed depends on the latest version at the time. Such nondeterminism is bad: It would be maddening for a Git branch that built on Monday to mysteriously be failing on Tuesday because of a new release of a library. The shrinkwrap file solves this problem by storing a complete installation plan in a large file that is tracked by Git.
+> 
+> The shrinkwrap file has different names depending on the package manager that your repo is using: shrinkwrap.yaml, npm-shrinkwrap.json, or yarn.lock
+> 
+> \- [Everyday commands \| Rush](https://rushjs.io/pages/developer/everyday_commands/)
+
+
+의존성 버전에 caret(`^`)이나 tilde(`~`)등을 사용하면 동일한 버전이라도 언제 `npm install`을 하는가에 따라서 다른 버전이 설치될 수 있기 때문에
+앱이 제대로 작동하지 않을 수 있습니다. 이를 위해 npm은 `package-lock.json`을 추가해서 동일한 버전이 설치되도록 제한합니다. Rush에서는
+`npm-shrinkwrap.json`이 동일한 역할을 합니다. pnpm을 사용하면 `shrinkwrap.json`을 사용하게 됩니다. `rush.json`은 pnpm을 사용하도록
+변경했지만 `npm-shrinkwrap.json`파일이 이미 있으니까 `rush update --full --purge`가 실패했습니다.
+
+저희는 [도메인 패키지를 추가](#도메인-패키지-추가)하면서 `dependencies`의 버전이 여러 개로 해석될 수 없게끔 변경했으니 마음놓고
+`npm-shrinkwrap.json`을 삭제해도 됩니다.
+
+```
+~/nodejs-tutorial-example-rush$ rm common/config/rush/npm-shrinkwrap.json
+~/nodejs-tutorial-example-rush$ rush update --full --purge
+
+The command failed:
+ /Users/mj/projects/nodejs-tutorial-example-rush/common/temp/pnpm-local/node_modules/.bin/pnpm install --store /Users/mj/projects/nodejs-tutorial-example-rush/common/temp/pnpm-store --no-prefer-frozen-lockfile --recursive --link-workspace-packages falseERROR: Error: The command failed with exit code 1
+
+Giving up after 3 attempts
+```
+
+그래도 저는 뭐가 잘 안되네요... 기존에 설치되어있던 node_modules 디렉토리 때문에 충돌이 발생하는 것 같으니 찾아서 모두 제거하겠습니다.
+
+```
+~/nodejs-tutorial-example-rush$ find . -type d -name "node_modules" -prune
+./app/board-cli/node_modules
+./common/temp/node_modules
+./common/deploy/app/board-cli/node_modules
+./common/deploy/common/temp/node_modules
+./domain/board-domain/node_modules
+
+# node_modules를 잘 찾는 것을 확인했으니 과감히 rm -rf로 지워준다.
+~/nodejs-tutorial-example-rush$ find . -type d -name "node_modules" -prune | xargs rm -rf
+~/nodejs-tutorial-example-rush$ rush update --full --purge
+...
+ WARN  Issues with peer dependencies found
+../../app/board-cli
+└─┬ ts-node
+  └── ✕ missing peer @types/node@"*"
+Peer dependencies that should be installed:
+  @types/node@"*"  
+
+../../domain/board-domain
+└─┬ ts-node
+  └── ✕ missing peer @types/node@"*"
+
+Peer dependencies that should be installed:
+  @types/node@"*"  
+
+Copying "/Users/mj/projects/nodejs-tutorial-example-rush/common/temp/pnpm-lock.yaml"
+  --> "/Users/mj/projects/nodejs-tutorial-example-rush/common/config/rush/pnpm-lock.yaml"
+
+
+Rush update finished successfully. (27.10 seconds)
+```
+
+드디어 `rush update`가 성공을 했습니다. 하지만 Peer dependency 관련 경고가 발생했습니다. `ts-node`가 `@types/node`를 사용하지만 저희가
+명시적으로 의존성을 추가하지 않았기 때문에 발생하는 경고입니다. [Rush는 pnpm을 사용하는 경우 `rush.json`에 `"strictPeerDependencies"` 옵션을 켜도록 권장](https://rushjs.io/pages/maintainer/recommended_settings/#strictpeerdependencies)하고 있습니다.
+옵션을 켜고 다시 `rush update --full`을 해보겠습니다.
+
+```json-doc
+// rush.json
+{
+  ...,
+  "pnpmOptions": {
+    "strictPeerDependencies": true
+  }
+}
+```
+
+```
+~/nodejs-tutorial-example-rush$ rush update --full
+
+...
+ ERR_PNPM_PEER_DEP_ISSUES  Unmet peer dependencies
+
+../../app/board-cli
+└─┬ ts-node
+  └── ✕ missing peer @types/node@"*"
+Peer dependencies that should be installed:
+  @types/node@"*"
+  
+../../domain/board-domain
+└─┬ ts-node
+  └── ✕ missing peer @types/node@"*"
+Peer dependencies that should be installed:
+  @types/node@"*"
+```
+
+이번에는 경고가 아니라 에러가 발생하면서 `rush update --full`이 실패합니다. 의존성 관리를 좀 더 빡빡하게 할 수 있어서 아주 만족스럽습니다.
+`app/board-cli`와 `domain/board-domain`의 `devDependencies`에 `@types/node`를 추가한 뒤 `rush update --full`을 입력합니다. 
+`npm show @types/node version`를 입력하면 `@types/node`의 최신버전을 알 수 있습니다. 저는 `"@types/node": "^17.0.23"`를 추가하겠습니다.
+
+
+```
+~/nodejs-tutorial-example-rush$ rush update --full
+
+...
+
+Scope: all 3 workspace projects
+.                                        | +559 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: .../nodejs-tutorial-example-rush/common/temp/pnpm-store/v3
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 559, reused 559, downloaded 0, added 559, done
+node_modules/.pnpm/nodemon@2.0.15/node_modules/nodemon: Running postinstall script, done in 179ms
+
+Copying ".../nodejs-tutorial-example-rush/common/temp/pnpm-lock.yaml"
+  --> ".../nodejs-tutorial-example-rush/common/config/rush/pnpm-lock.yaml"
+
+Rush update finished successfully. (22.03 seconds)
+```
+
+이제 에러 없이 잘 되는군요! `rush build && rush deploy`로 빌드까지 잘 되는지 확인해보겠습니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush build && rush deploy
+
+> app-board-cli@1.0.0 lint /Users/mj/projects/nodejs-tutorial-example-rush/app/board-cli
+> eslint . --ext .ts,.tsx
+
+src/article/view/cli/state-modules/redux/MyStore.ts(1,42): error TS2307: Cannot find module 'redux' or its corresponding type declarations.
+
+
+Operations failed.
+
+rush build (10.35 seconds)
+```
+
+빌드 과정에서 문제가 발생했습니다. `MyStore.ts`에서 사용하는 `redux` 모듈을 찾을 수 없다고 나옵니다. `app/board-cli/package.json`의 의존성을
+보면 `@reduxjs/toolkit`만 있을 뿐 `redux`는 없는데, 지금까지 어떻게 `redux`를 사용하고 있었을까요?
+
+```typescript
+import { ActionFromReducer, Store } from "redux";
+import * as reduxModule from "./redux-module";
+
+export type MyStore = Store<
+  reduxModule.State,
+  ActionFromReducer<typeof reduxModule.reducer>
+>;
+```
+
+```json-doc
+// app/board-cli/package.json
+{
+  ...,
+  "dependencies": {
+    "@reduxjs/toolkit": "1.8.0",
+    "inversify": "6.0.1",
+    "mobx": "6.4.2",
+    "reflect-metadata": "0.1.13",
+    "board-domain": "workspace:*" // pnpm을 사용하도록 변경하고 rush update --full --purge를 하면서 "1.0.0"대신 "workspace:*"로 변경되었다.
+  },
+  "devDependencies": {
+    "@johanblumenberg/ts-mockito": "^1.0.32",
+    "@types/jest": "^27.4.1",
+    "@types/node": "^17.0.23",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
+    "dependency-cruiser": "^11.4.1",
+    "eslint": "^8.11.0",
+    "eslint-config-prettier": "^8.5.0",
+    "jest": "^27.5.1",
+    "nodemon": "^2.0.15",
+    "prettier": "2.5.1",
+    "ts-jest": "^27.1.3",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  }
+}
+```
+
+[`@reduxjs/toolkit`의 의존성](https://www.npmjs.com/package/@reduxjs/toolkit?activeTab=dependencies)을 확인해보면 `redux`를
+찾을 수 있습니다. npm을 사용중이었다면 의존성(`@reduxjs/toolkit`)의 의존성(`redux`)까지 `node_modules` 디렉토리에 평평하게 펼쳐지기 때문에
+이제까지는 직접 `redux`를 의존하지 않더라도 `redux` 패키지를 사용할 수 있었습니다. 이것이 [Phantom Dependencies](https://rushjs.io/pages/advanced/phantom_deps/)
+문제 입니다.
+
+pnpm을 사용하게 되면 `app/board-cli/node_modules`에는 `redux` 없이 `@reduxjs/toolkit`만 설치가 됩니다.
+
+```
+~/nodejs-tutorial-example-rush$ tree app/board-cli/node_modules -d
+app/board-cli/node_modules
+├── @johanblumenberg
+│   └── ts-mockito -> ../../../../common/temp/node_modules/.pnpm/...
+├── @reduxjs
+│   └── toolkit -> ../../../../common/temp/node_modules/.pnpm/...
+├── @types
+│   ├── jest -> ../../../../common/temp/node_modules/.pnpm/...
+│   └── node -> ../../../../common/temp/node_modules/.pnpm/...
+├── @typescript-eslint
+│   ├── eslint-plugin -> ../../../../common/temp/node_modules/.pnpm/...
+│   └── parser -> ../../../../common/temp/node_modules/.pnpm/...
+├── board-domain -> ../../../domain/board-domain
+├── dependency-cruiser -> ../../../common/temp/node_modules/.pnpm/...
+├── eslint -> ../../../common/temp/node_modules/.pnpm/...
+├── eslint-config-prettier -> ../../../common/temp/node_modules/.pnpm/...
+├── inversify -> ../../../common/temp/node_modules/.pnpm/...
+├── jest -> ../../../common/temp/node_modules/.pnpm/...
+├── mobx -> ../../../common/temp/node_modules/.pnpm/...
+├── nodemon -> ../../../common/temp/node_modules/.pnpm/...
+├── prettier -> ../../../common/temp/node_modules/.pnpm/...
+├── reflect-metadata -> ../../../common/temp/node_modules/.pnpm/...
+├── ts-jest -> ../../../common/temp/node_modules/.pnpm/...
+├── ts-node -> ../../../common/temp/node_modules/.pnpm/...
+└── typescript -> ../../../common/temp/node_modules/.pnpm/...
+
+23 directories
+```
+
+`node_modules`에 23개의 디렉토리밖에 없다니... [이전에 확인했을 때는 435개의 디렉토리 있었는데](#pnpm) 참 대조적이네요. 디렉토리들도 모두 심볼릭
+링크로 연결되어 있기 때문에 모노레포 상황이더라도 동일한 의존성이 여러 `node_modules`에 실제로 존재하게 되는 현상을 해결할 수 있게 되었습니다. 디스크
+사용량도 줄어들고 의존성을 설치할 때도 한 곳(`common/temp/node_modules/.pnpm`)에만 설치하기 때문에 속도도 빠릅니다. IDE에서도 `import` 문을
+자동으로 추가할 때 인덱싱해야 할 `node_modules` 의존성 개수가 확 줄어들기 때문에 개발 환경도 쾌적해집니다.
+
+`MyStore.ts`에서 `redux`대신 `@reduxjs/toolkit`을 사용하도록 변경하고 다시 빌드합니다.
+
+```typescript
+import { ActionFromReducer, Store } from "redux";
+import * as reduxModule from "./redux-module";
+
+export type MyStore = Store<
+  reduxModule.State,
+  ActionFromReducer<typeof reduxModule.reducer>
+>;
+```
+
+```
+~/nodejs-tutorial-example-rush$ rush build && rush deploy
+
+Starting "rush deploy"
+
+Loading deployment scenario: /Users/mj/projects/nodejs-tutorial-example-rush/common/config/rush/deploy.json
+Deploying to target folder:  /Users/mj/projects/nodejs-tutorial-example-rush/common/deploy
+Main project for deployment: app-board-cli
+
+
+ERROR: The deploy target folder is not empty. You can specify "--overwrite" to recursively delete all folder contents.
+```
+
+빌드 과정은 성공했지만 배포 디렉토리가 비어있지 않다고 에러가 발생했습니다. `--overwrite` 옵션을 추가해서 배포하고 애플리케이션을 실행해보겠습니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush deploy --overwrite
+
+...
+The operation completed successfully.
+~/nodejs-tutorial-example-rush$ node common/deploy/app/board-cli
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+```
+
+실행이 잘 됩니다.
+
+## 중복 설정 제거하기 (with Heft)
+
+모노레포를 먼저 적용하기 위해 중복으로 작성했던 설정은 다음과 같습니다.
+
+- `.eslintignore`
+- `.eslintrc.js`
+- `.prettierignore`
+- `.prettierrc.json`
+- `.jest.config.js`
+- `tsconfig.json`
+
+지금처럼 프로젝트마다 중복으로 설정파일을 작성하면 작동은 가능하지만 영 찜찜한 것은 어쩔 수 없습니다. Rush는 중복 설정의 문제를 해결하기 위해 Heft를
+사용합니다.
+
+- https://rushstack.io/pages/heft_tasks/eslint/
+- https://rushstack.io/pages/heft_tasks/typescript/
+
+Heft는 Rush Stack에 포함되어 있습니다. Rush Stack은 또 뭘까요? 이렇게 작은 게시판 프로젝트에서도 중복 설정의 문제가 발생하는걸 보면, 프로젝트가
+커질수록 모노레포 상황에서만 발생하게 되는 문제들을 마주칠 것 같은 불안한 기분이 듭니다. Rush Stack은 대규모 모노레포 프로젝트를 관리할 때 마주치게 되는
+문제를 해결할 수 있는 도구 모음집니다.
+
+- https://rushstack.io/#what-is-rush-stack
+ 
+To be developed...
