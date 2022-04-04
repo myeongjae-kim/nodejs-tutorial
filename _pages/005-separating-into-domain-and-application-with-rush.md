@@ -597,7 +597,7 @@ dist
 
 <figure>
     <img alt="Hello, board-domain!" src="/res/15-log-printed.png" />
-    <figcaption><code>board-cli</code>패키지에서 <code>board-domain</code>패키지의 코드를 사용할 수 있다.</figcaption>
+    <figcaption><code>board-cli</code>패키지에서 <code>board-domain</code>패키지의 코드를 사용할 수 있습니다.</figcaption>
 </figure>
 
 `domain/board-domain/package.json` 패키지를 보면 `devDependencies` 속성만 있고 `dependencies`는 없습니다. 도메인 패키지에서는 최대한
@@ -619,6 +619,64 @@ dependencies.svg
 ```
 
 지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-add-domain-package](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-add-domain-package)에서 확인할 수 있습니다.
+
+### `rush clean` 커맨드 추가
+
+이전까지는 소스코드가 하나의 패키지 안에 있었고 빌드를 하면 `dist` 디렉토리 안에 빌드 결과물이 생성되었습니다. 그러나 패키지가 두 개로 나뉜 순간부터는
+빌드 결과물이 두 군데로 흩어지기 때문에 이전의 빌드 결과물을 완전히 제거하려면 `app/board-cli/dist`와 `domain/board-domain/dist` 두 군데를
+모두 제거해야 합니다.
+
+[Rush는 사용자가 Custom commands를 추가할 수 있도록 허용](https://rushjs.io/pages/maintainer/custom_commands/)하고 있습니다.
+빌드 결과물의 제거를 위해 `package.json`에 `clean` 스크립트를 정의해놨으니 `rush clean` 커맨드를 추가해서 두 패키지의 빌드 결과물을 한 번에
+제거하겠습니다.
+
+`common/config/rush/command-line.json`의 `commands` 속성에 아래와 같이 추가합니다.
+
+```json-doc
+{
+  ...,
+  "commands": [
+    {
+      "commandKind": "bulk",
+      "name": "clean",
+      "summary": "Delete build results of each project.",
+      "description": "Delete build results of each project by removing dist directory",
+      "enableParallelism": true
+    }
+  ]
+}
+```
+
+`commandKind`는 `bulk`와 `global`이 있습니다. `bulk`는 커맨드를 모든 프로젝트마다 한 번씩 실행하고, `global`은 저장소 전체에 대해서 한 번만
+커맨드를 실행합니다. `rush clean`을 하면 `dist` 디렉토리 이하의 모든 파일과 디렉토리를 제거합니다.
+
+```
+~/nodejs-tutorial-example$ rush clean
+
+Starting "rush clean"
+
+Executing a maximum of 16 simultaneous processes...
+
+==[ board-domain ]=================================================[ 1 of 2 ]==
+"board-domain" completed successfully in 0.13 seconds.
+
+==[ app-board-cli ]================================================[ 2 of 2 ]==
+"app-board-cli" completed successfully in 0.06 seconds.
+
+
+
+==[ SUCCESS: 2 operations ]====================================================
+
+These operations completed successfully:
+  app-board-cli    0.06 seconds
+  board-domain     0.13 seconds
+
+
+rush clean (0.22 seconds)
+
+~/nodejs-tutorial-example$ ls app/board-cli/dist       # 아무것도 출력하지 않는다.
+~/nodejs-tutorial-example$ ls domain/board-domain/dist # 아무것도 출력하지 않는다.
+```
 
 ### `board-cli`에서 도메인 분리하기
 
@@ -642,7 +700,52 @@ Ran all test suites.
 `app/board-cli/src/domain` 디렉토를 과감하게 제거하고 오류가 발생하는 `import`에 대해서 `board-domain`을 의존하도록 변경합니다.
 `board-domain/src/index.ts`의 `foo()` 함수는 더 이상 필요 없으니 제거합니다: [https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/145a603e565294b357834a083bd711c5610ec554](https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/145a603e565294b357834a083bd711c5610ec554)
 
-`rush build`를 실행해서 빌드가 잘 되는지 확인합니다.
+`rush clean`을 해서 기존 빌드를 지우고 `rush build`가 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ rush build
+
+src/article/view/cli/MenuPrinter.ts(2,33): error TS2307: Cannot find module 'board-domain/dist/article/port/incoming/ArticleResponse' or its corresponding type declarations.
+
+Operations failed.
+
+rush build (5.36 seconds)
+```
+
+안되네요... `app/board-cli`에서 `domain/board-domain`의 빌드 결과물을 찾지 못합니다. 도메인 패키지의 빌드 결과를 확인해보니 소스 코드와 디렉토리
+구조가 약간 다릅니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ tree . -I node_modules -I __test__ -L 3 -d
+.
+├── dist
+│   ├── model
+│   └── port
+│       ├── incoming
+│       └── outgoing
+└── src
+    └── article
+        ├── model
+        └── port
+
+12 directories
+```
+
+`src/article`의 내용물이 `dist/article`이 아니라 그냥 `dist`로 올라와버렸네요. `src` 디렉토리가 비어있기 때문에 이런 현상이 발생합니다.
+`tsconfig.json`에서 `rootDir`를 `./src`로 지정해주면 `src`의 구조 그대로 `dist`에 컴파일 결과물을 생성합니다.
+
+```json-doc
+// doamin/board-domain/tsconfig.json
+{
+  "compilerOptions": {
+    ...,
+    "rootDir": "./src",
+    ...
+  }
+}
+```
+
+빌드를 합니다.
 
 ```
 ~/nodejs-tutorial-example-rush/domain/board-domain$ rush build
@@ -665,7 +768,24 @@ These operations completed successfully:
 rush build (10.34 seconds)
 ```
 
-빌드가 잘 되네요. `app/board-cli` 디렉토리로 이동해서 애플리케이션 실행이 잘 되는지 `rushx start`로 확인합니다.
+빌드가 잘 되네요. 트리를 출력해보면 확인해보면 `src`와 `dist`의 구조가 동일합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ tree . -I node_modules -I __test__ -L 3 -d
+.
+├── dist
+│   └── article
+│       ├── model
+│       └── port
+└── src
+    └── article
+        ├── model
+        └── port
+
+8 directories
+```
+
+`app/board-cli` 디렉토리로 이동해서 애플리케이션 실행이 잘 되는지 `rushx start`로 확인합니다.
 
 ```
 ~/nodejs-tutorial-example-rush/domain/board-domain$ cd ../../app/board-cli
@@ -863,9 +983,9 @@ ERROR: An unrecognized file "npm-shrinkwrap.json" was found in the Rush config f
 
 
 의존성 버전에 caret(`^`)이나 tilde(`~`)등을 사용하면 동일한 버전이라도 언제 `npm install`을 하는가에 따라서 다른 버전이 설치될 수 있기 때문에
-앱이 제대로 작동하지 않을 수 있습니다. 이를 위해 npm은 `package-lock.json`을 추가해서 동일한 버전이 설치되도록 제한합니다. Rush에서는
-`npm-shrinkwrap.json`이 동일한 역할을 합니다. pnpm을 사용하면 `shrinkwrap.json`을 사용하게 됩니다. `rush.json`은 pnpm을 사용하도록
-변경했지만 `npm-shrinkwrap.json`파일이 이미 있으니까 `rush update --full --purge`가 실패했습니다.
+앱이 제대로 작동하지 않을 수 있습니다. 이 문제를 해결하기 위해 npm은 `package-lock.json`을 추가해서 `package-lock.json`이 변경되지 않는 이상
+같은 버전이 설치되도록 제한합니다. Rush에서는 `npm-shrinkwrap.json`이 동일한 역할을 합니다. pnpm을 사용하면 `pnpm-lock.yaml`을 사용합니다.
+`rush.json`은 pnpm을 사용하도록 변경했지만 `npm-shrinkwrap.json`파일이 이미 있으니까 `rush update --full --purge`가 실패했습니다.
 
 저희는 [도메인 패키지를 추가](#도메인-패키지-추가)하면서 `dependencies`의 버전이 여러 개로 해석될 수 없게끔 변경했으니 마음놓고
 `npm-shrinkwrap.json`을 삭제해도 됩니다.
@@ -992,7 +1112,7 @@ rush build (10.35 seconds)
 보면 `@reduxjs/toolkit`만 있을 뿐 `redux`는 없는데, 지금까지 어떻게 `redux`를 사용하고 있었을까요?
 
 ```typescript
-import { ActionFromReducer, Store } from "redux";
+import { ActionFromReducer, Store } from "redux"; // pnpm 덕분에 잘못된 import를 발견!
 import * as reduxModule from "./redux-module";
 
 export type MyStore = Store<
@@ -1006,7 +1126,7 @@ export type MyStore = Store<
 {
   ...,
   "dependencies": {
-    "@reduxjs/toolkit": "1.8.0",
+    "@reduxjs/toolkit": "1.8.0", // 이 의존성만 있고 redux는 없다.
     "inversify": "6.0.1",
     "mobx": "6.4.2",
     "reflect-metadata": "0.1.13",
@@ -1069,14 +1189,14 @@ app/board-cli/node_modules
 ```
 
 `node_modules`에 23개의 디렉토리밖에 없다니... [이전에 확인했을 때는 435개의 디렉토리 있었는데](#pnpm) 참 대조적이네요. 디렉토리들도 모두 심볼릭
-링크로 연결되어 있기 때문에 모노레포 상황이더라도 동일한 의존성이 여러 `node_modules`에 실제로 존재하게 되는 현상을 해결할 수 있게 되었습니다. 디스크
-사용량도 줄어들고 의존성을 설치할 때도 한 곳(`common/temp/node_modules/.pnpm`)에만 설치하기 때문에 속도도 빠릅니다. IDE에서도 `import` 문을
-자동으로 추가할 때 인덱싱해야 할 `node_modules` 의존성 개수가 확 줄어들기 때문에 개발 환경도 쾌적해집니다.
+링크로 연결되어 있기 때문에 모노레포 상황이더라도 동일한 의존성이 여러 `node_modules`에 설치되는 현상을 해결할 수 있게 되었습니다. 디스크 사용량도
+줄어들고 의존성을 설치할 때도 한 곳(`common/temp/node_modules/.pnpm`)에만 설치하기 때문에 속도도 빠릅니다. IDE에서도 `import` 문을 자동으로
+추가할 때 인덱싱해야 할 `node_modules` 의존성 개수가 확 줄어들기 때문에 개발 환경도 쾌적해집니다.
 
 `MyStore.ts`에서 `redux`대신 `@reduxjs/toolkit`을 사용하도록 변경하고 다시 빌드합니다.
 
 ```typescript
-import { ActionFromReducer, Store } from "redux";
+import { ActionFromReducer, Store } from "@reduxjs/toolkit"; // redux 대신 @reduxjs/toolkit을 사용
 import * as reduxModule from "./redux-module";
 
 export type MyStore = Store<
@@ -1115,6 +1235,8 @@ x) 종료
 
 실행이 잘 됩니다.
 
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-use-pnpm](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-use-pnpm)에서 확인할 수 있습니다.
+
 ## 중복 설정 제거하기 (with Heft)
 
 모노레포를 먼저 적용하기 위해 중복으로 작성했던 설정은 다음과 같습니다.
@@ -1129,13 +1251,380 @@ x) 종료
 지금처럼 프로젝트마다 중복으로 설정파일을 작성하면 작동은 가능하지만 영 찜찜한 것은 어쩔 수 없습니다. Rush는 중복 설정의 문제를 해결하기 위해 Heft를
 사용합니다.
 
-- https://rushstack.io/pages/heft_tasks/eslint/
-- https://rushstack.io/pages/heft_tasks/typescript/
+- [https://rushstack.io/pages/heft_tasks/eslint/](https://rushstack.io/pages/heft_tasks/eslint/)
+- [https://rushstack.io/pages/heft_tasks/typescript/](https://rushstack.io/pages/heft_tasks/typescript/)
 
 Heft는 Rush Stack에 포함되어 있습니다. Rush Stack은 또 뭘까요? 이렇게 작은 게시판 프로젝트에서도 중복 설정의 문제가 발생하는걸 보면, 프로젝트가
 커질수록 모노레포 상황에서만 발생하게 되는 문제들을 마주칠 것 같은 불안한 기분이 듭니다. Rush Stack은 대규모 모노레포 프로젝트를 관리할 때 마주치게 되는
-문제를 해결할 수 있는 도구 모음집니다.
+문제를 해결할 수 있는 도구 모음집니다: [https://rushstack.io/#what-is-rush-stack](https://rushstack.io/#what-is-rush-stack)
 
-- https://rushstack.io/#what-is-rush-stack
- 
+Heft에서는 설정 파일의 중복을 ['rig packages'](https://rushstack.io/pages/heft/rig_packages/)로 해결합니다.
+일단 [Heft부터 설치](https://rushstack.io/pages/heft_tutorials/getting_started/)해서 사용해볼까요?
+
+```
+~/nodejs-tutorial-example-rush$ cd app/board-cli
+~/nodejs-tutorial-example-rush/app/board-cli$ rush add -p @rushstack/heft --dev --caret
+```
+
+Heft를 명령줄에서도 실행할 수 있게 `--global`로 설치도 해줍니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ pnpm install --global @rushstack/heft
+```
+
+그리고 `app/board-cli`에서 `heft build`로 빌드가 잘 되는지 테스트합니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ heft build
+
+...
+[typescript] Using TypeScript version 4.6.3
+[eslint] Using ESLint version 8.12.0
+ ---- Compile finished (3452ms) ---- 
+ ---- Bundle started ---- 
+ ---- Bundle finished (1ms) ---- 
+ ---- Post-build started ---- 
+ ---- Post-build finished (0ms) ---- 
+-------------------- Finished (3.802s) --------------------
+Project: app-board-cli@1.0.0
+Heft version: 0.44.5
+Node version: v14.19.1
+
+~/nodejs-tutorial-example-rush/app/board-cli$ rushx start
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+~/nodejs-tutorial-example-rush/app/board-cli$ echo 'temp/' >> ../../.gitignore
+```
+
+빌드가 잘 되는군요. 실행도 잘 됩니다. `temp` 디렉토리도 생성되는데 저장소에 추가할 필요는 없으니 `.gitignore`에 `temp/`를 추가합니다.
+
+방금은 `package.json`의 `scripts`의 `build`를 사용하지 않고 빌드를 했습니다. `package.json`에서 `build` 스크립트를 삭제하고 다시
+`heft build`를 입력해도 동일하게 빌드가 잘 되는 것을 확인할 수 있습니다. `heft build`를 실행하면 Heft가 `.eslintrc`와 `tsconfig.json`를
+보고 알아서 lint를 수행하고 컴파일을 합니다. 우리가 원하는 빌드 과정은
+
+1. `prettier`로 코드 스타일 정리
+2. `eslint`로 규칙에 어긋나는 코드가 있는지 확인
+3. `typescript`로 컴파일
+
+하는 것입니다. 운이 좋게 2번과 3번은 Heft가 알아서 해주지만, `prettier`는 추가로 설정해서 `heft build` 과정에 집어넣어야 합니다. 그리고 위 3개의
+과정과 관련된 모든 설정파일도 여전히 패키지별로 존재하고 있습니다. 일단
+[메뉴얼을 따라서 `package.json`의 `build` 스크립트에서 `heft build --clean`을 실행하도록 변경](https://rushstack.io/pages/heft_tutorials/heft_and_rush/#how-heft-gets-invoked)합니다.
+
+```json-doc
+// app/board-cli/package.json과 domain/board-domain/package.json 모두 동일하게 변경
+{
+  ...,
+  "scripts": {
+    "build": "heft build --clean"
+  },
+  ...
+}
+```
+
+그리고 최종 빌드 결과물이 실행이 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ cd ../../
+~/nodejs-tutorial-example-rush$ rush build && rush deploy --overwrite
+
+...
+Deleting target folder contents because "--overwrite" was specified...                                                  
+                                                                                                                        
+Analyzing project: app-board-cli                                                                                        
+                                                                                                                        
+Copying folders...                                                                                                      
+Writing deploy-metadata.json                                                                                            
+Creating symlinks...                                                                                                    
+                                                                                                                        
+The operation completed successfully. 
+~/nodejs-tutorial-example-rush$ node common/deploy/app/board-cli
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택:
+```
+
+Heft로 빌드를 수행하더라도 빌드 결과물이 제대로 나옵니다. Rush와 Heft가 잘 맞물려서 작동하는 것도 확인했습니다. 이제는 중복된 설정 파일을 제거할
+차례입니다.
+
+### rig package로 `tsconfig.json` 중복 없애기
+
+Heft는 ['rig packages'라는 설정용 패키지를 도입](https://rushstack.io/pages/heft_tutorials/heft_and_rush/#sharing-configuration-using-rig-packages)해서 설정 파일의 중복을 없앱니다.
+`tsconfig.json`이나 `.eslintrc`같이 IDE에서 사용해야 하는 설정파일의 경우는 개별 패키지 디렉토리에서 이 파일들을 완전히 없앨 수는 없지만,
+`jest.config.json`같은 경우는 'rig packages'를 도입해서 완전히 없앨 수 있습니다.
+
+`core-rig`라는 우리만의 rig package를 만들어서 사용해봅시다. `rig/core-rig`라는 디렉토리를 만들고 `rush.json`의 `projects` 속성에 추가합니다.
+
+```
+~/nodejs-tutorial-example-rush$ mkdir -p rig/core-rig && cd rig/core-rig
+~/nodejs-tutorial-example-rush/rig/core-rig$ npm init # package.json 생성. 계속 엔터만 눌러줍니다.
+```
+
+생성한 `package.json`을 열어서 `build`와 `clean` 스크립트를 추가합니다. 없으면 `rush` 커맨드 실행시 에러가 발생하기 때문에 빈 문자열만 넣어줍니다.
+
+```json-doc
+// rig/core-rig/package.json
+{
+  "name": "core-rig",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "scripts": {
+    "build": "",
+    "clean": ""
+  },
+  "license": "ISC"
+}
+```
+
+`rush.json`에 프로젝트를 추가합니다.
+
+```json-doc
+// rush.json
+{
+  ...,
+  "projects": [
+    {
+      "packageName": "app-board-cli",
+      "projectFolder": "app/board-cli"
+    },
+    {
+      "packageName": "board-domain",
+      "projectFolder": "domain/board-domain"
+    },
+    {
+      "packageName": "core-rig",
+      "projectFolder": "rig/core-rig"
+    }
+  ]
+}
+```
+
+다시 프로젝트 root으로 돌아와서 `rush update`를 합니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ cd ../../
+~/nodejs-tutorial-example-rush$ rush update
+
+...
+Rush update finished successfully. (1.82 seconds)
+```
+
+우리는 이전에 `domain/board-domain` 패키지를 추가하면서 `tsconfig.json`에 `declaration`과 `declarationMap` 옵션을 켜주었습니다.
+`tsconfig.json` 옵션을 `rig/core-rig` 패키지로 옮기더라도 `domain/board-domain`빌드 결과물에 `.d.ts`와 `.d.ts.map`이 생성된다면
+`tsconfig.json` 설정이 잘 적용됐다는 것을 증명할 수 있습니다.
+
+`doamin/board-domain`으로 이동해서 `core-rig` 의존성을 추가합니다.
+
+```
+~/nodejs-tutorial-example-rush$ cd domain/board-domain
+~/nodejs-tutorial-example-rush/domain/board-domain$ rush add -p core-rig
+~/nodejs-tutorial-example-rush/domain/board-domain$ cat package.json
+{
+  ...,
+  "dependencies": {
+    "core-rig": "workspace:*"
+  }
+}
+~/nodejs-tutorial-example-rush/domain/board-domain$ ls -al node_modules | grep core-rig
+lrwxr-xr-x  21 mj  4 Apr 21:47 core-rig -> ../../../rig/core-rig
+```
+
+`core-rig` 의존성이 추가되었고 `rig/core-rig` 디렉토리를 가리키는 것을 확인할 수 있습니다. `domain/board-domain/tsconfig.json`을
+`rig/core-rig/tsconfig.json`으로 복사합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ cp tsconfig.json ../../rig/core-rig
+```
+
+그리고 `domain/board-domain/tsconfig.json`이 `rig/core-rig`의 `tsconfig.json`을 상속하도록 변경합니다.
+
+```json-doc
+// domain/board-domain/tsconfig.json
+{
+  "extends": "./node_modules/core-rig/tsconfig.json"
+}
+```
+
+마지막으로 `domain/board-domain/config/rig.json`을 추가합니다. `rigPackageName`은 `core-rig`입니다.
+
+```
+// The "rig.json" file directs tools to look for their config files in an external package.
+// Documentation for this system: https://www.npmjs.com/package/@rushstack/rig-package
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rig-package/rig.schema.json",
+
+  /**
+   * (Required) The name of the rig package to inherit from.
+   * It should be an NPM package name with the "-rig" suffix.
+   */
+  "rigPackageName": "core-rig"
+
+  /**
+   * (Optional) Selects a config profile from the rig package.  The name must consist of
+   * lowercase alphanumeric words separated by hyphens, for example "sample-profile".
+   * If omitted, then the "default" profile will be used."
+   */
+  // "rigProfile": "your-profile-name"
+}
+```
+
+`dist` 디렉토리를 제거하고 다시 빌드를 합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ rm -rf dist && rush build
+
+--[ FAILURE: board-domain ]----------------------------------[ 0.54 seconds ]--
+
+Error: The rig profile "default" is not defined by the rig package "core-rig"
+
+
+Operations failed.
+
+rush build (0.57 seconds)
+```
+
+`default` profile이 `core-rig`에 없다고 에러가 발생합니다.
+[rig pakcage의 예시를 보면 tsconfig-base.json이 profiles/default 디렉토리 안에 있는 것을 확인](https://github.com/microsoft/rushstack/tree/master/rigs/heft-node-rig/profiles/default)할 수 있습니다.
+저희도 동일하게 `rig/core-rig/tsconfig.json`을 `rig/core-rig/profiles/default` 이하로 옮겨주고 다시 빌드를 합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ cd ../../rig/core-rig
+~/nodejs-tutorial-example-rush/rig/core-rig$ mkdir -p profiles/default && mv tsconfig.json profiles/default
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush build
+
+...
+  [typescript] src/article/view/cli/MenuPrinter.ts:2:33 - (TS2307) Cannot find module 'board-domain/dist/article/port/incoming/ArticleResponse' or its corresponding type declarations.
+Error: Encountered TypeScript errors
+
+
+Operations failed.
+
+rush build (7.94 seconds)
+```
+
+이번에도 실패합니다. rig package 설정까지는 잘 된 것 같은데 `app/board-cli`를 컴파일 할 때 `domain/board-domain`의 코드를 찾지 못합니다.
+디렉토리를 확인해보니 `domain/board-domain/dist`가 생성되어 있지 않습니다. `domain/board-domain` 패키지의 빌드는 성공했는데 빌드 결과물은
+어디에 있는걸까요? 두구두구... `rig/core-rig/profiles/default/dist`에 있습니다.
+
+`rig/core-rig/profiles/default/tsconfig.json`에 `"outDir": "./dist"`로 옵션이 들어가있어서 이를 상속하는
+`domain/board-domain/tsconfig.json`의 빌드 결과물이 `rig/core-rig/profiles/default/dist`로 가버린 것이었습니다.`"outDir"`과
+`"rootDir"` 속성은 `core-rig`의 `tsconfig.json`에 있을 필요가 없으니 지워주고 `domain/board-domain/tsconfig.json`에 추가해줍니다.
+
+```json-doc
+// domain/board-domain/tsconfig.json
+{
+  "extends": "./node_modules/core-rig/profiles/default/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+  }
+}
+```
+
+오랜만에 `rush clean`을 하고 `rush build`를 실행합니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush clean && rush build
+
+...
+==[ SUCCESS: 2 operations ]====================================================
+
+These operations completed successfully:
+  app-board-cli    4.27 seconds
+  board-domain     3.13 seconds
+
+
+rush build (7.42 seconds)
+```
+
+빌드가 잘 되네요. `domain/board-domain/dist`를 확인해보면 `.d.ts`와 `.d.ts.map` 파일을 확인할 수 있습니다. 이로써 `core-rig`의
+`tsconfig.json`의 설정이 `domain/board-domain`의 컴파일에 영향을 주고 있음을 알 수 있습니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ tree ../../domain/board-domain/dist -P '*.d.ts|*.d.ts.map' -I __test__
+../../domain/board-domain/dist
+└── article
+    ├── ArticleCommandService.d.ts
+    ├── ArticleCommandService.d.ts.map
+    ├── ArticleQueryService.d.ts
+    ├── ArticleQueryService.d.ts.map
+    ├── model
+    │   ├── Article.d.ts
+    │   ├── Article.d.ts.map
+    │   ├── ArticleImpl.d.ts
+    │   └── ArticleImpl.d.ts.map
+    └── port
+        ├── incoming
+        │   ├── ArticleCreateUseCase.d.ts
+        │   ├── ArticleCreateUseCase.d.ts.map
+        │   ├── ArticleGetUseCase.d.ts
+        │   ├── ArticleGetUseCase.d.ts.map
+        │   ├── ArticleListUseCase.d.ts
+        │   ├── ArticleListUseCase.d.ts.map
+        │   ├── ArticleRequest.d.ts
+        │   ├── ArticleRequest.d.ts.map
+        │   ├── ArticleResponse.d.ts
+        │   └── ArticleResponse.d.ts.map
+        └── outgoing
+            ├── ArticleLoadPort.d.ts
+            ├── ArticleLoadPort.d.ts.map
+            ├── ArticleSavePort.d.ts
+            └── ArticleSavePort.d.ts.map
+
+5 directories, 22 files
+```
+
+`app/board-cli`에서도 `rig/core-rig`를 의존하고 `tsconfig.json`의 중복을 없앱니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ cd ../../app/board-cli
+~/nodejs-tutorial-example-rush/app/board-cli$ rush add -p core-rig
+```
+
+```
+// app/board-cli/tsconfig.json
+{
+  "extends": "./node_modules/core-rig/profiles/default/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  }
+}
+```
+
+다시 빌드하고 실행까지 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ rush clean && rush rebuild && rushx start
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택:
+```
+
+아래 설정파일들 중에서 `tsconfig.json`의 중복을 해결했습니다.
+
+- [ ] `.eslintignore`
+- [ ] `.eslintrc.js`
+- [ ] `.prettierignore`
+- [ ] `.prettierrc.json`
+- [ ] `.jest.config.js`
+- [x] `tsconfig.json`
+
+다음은 `.eslintrc.js`와 `.eslitignore` 차례입니다.
+
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-rig](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-rig)에서 확인할 수 있습니다.
+
+### `.eslintrc.js` 중복 없애기
+
 To be developed...
+
+
+직접 프로젝트 구성하면서 설정에 실패하고 문제를 해결하는 과정까지 모두 자세하게 담았다.
