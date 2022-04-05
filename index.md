@@ -60,6 +60,26 @@ layout: home
 
 플러그인 아키텍처는 수단일 뿐입니다.
 
+## 다루는 주제와 기술
+
+- 객체의 책임과 역할
+- 의존성 관리
+- 도메인이란?
+- 제어의 역전
+- 의존성 주입
+- CQRS
+- 환형 의존(Circular Dependency) 피하기
+- [TypeScript](https://www.typescriptlang.org)
+- [InversifyJS](https://inversify.io)
+- [Jest](https://jestjs.io)
+- [ESLint](https://eslint.org)와 [Prettier](https://prettier.io)
+- [Rush](https://rushjs.io)와 [Heft](https://rushstack.io/pages/heft/overview/)
+
+## Prerequisite
+
+- 객체지향 프로그래밍 패러다임에 대한 이해
+- 타입스크립트
+
 ## 참고자료
 
 - [로버트 C. 마틴, 송준의. _클린 아키텍처_. 서울: 인사이트, 2019](http://ebook.insightbook.co.kr/book/69)

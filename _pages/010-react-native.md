@@ -1,5 +1,5 @@
 ---
-title: 6. 웹 브라우저로 (with React)
+title: (작성중) 10. 리액트 네이티브
 author: Myeongjae Kim
 date: 2022-03-12
 category: Tutorial

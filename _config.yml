@@ -1,10 +1,10 @@
 # Configurations
-title:            Nodejs Tutorial with Clean Architecture
-longtitle:        Nodejs Tutorial with Clean Architecture using IoC Container
+title:            Node.js Tutorial with Clean Architecture
+longtitle:        Node.js Tutorial with Clean Architecture using IoC Container
 author:           Myeongjae Kim
 email:            dev@myeongjae.kim
 description: >
-  Nodejs Tutorial with Clean Architecture using IoC Container: Role, Responsibility and Collaboration of Objects, Dependency Management, What is Domain, Implementing Inversion of Control Container, InversifyJS, React, TypeScript, Express, React-Native
+  Node.js Tutorial with Clean Architecture using IoC Container: Role, Responsibility and Collaboration of Objects, Dependency Management, What is Domain, Implementing Inversion of Control Container, InversifyJS, React, TypeScript, Express, React-Native
 
 version:          1.0
 gitbook_version:  3.2.3
