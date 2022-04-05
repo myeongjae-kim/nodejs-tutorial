@@ -390,9 +390,10 @@ domain/board-domain/src/article
 }
 ```
 
-패캐지마다 의존성 버전이 다르면 예상치 못한 문제가 발생할 수 있기 때문에 Rush에서는 [`common/config/rush/common-versions.json`](https://rushjs.io/pages/configs/common-versions_json/)을 제공해서 의존성 버전을 통일할 수 있게 도와줍니다.
-`dependencies`에서 사용하는 의존성은 `range` 없이 특정한 버전을, `devDependencies`에서 사용하는 의존성은 자동으로 `MINOR`패치까지 업데이트
-하는 caret(`^`)을 사용하도록 지정합니다.
+프로젝트가 특정 의존성의 과거 버전을 사용해야만 한다거나, 여러 프로젝트가 사용하는 의존성의 버전이 프로젝트마다 다른 경우 예상치 못한 문제가 발생할 수 있기
+때문에 Rush에서는 [`common/config/rush/common-versions.json`](https://rushjs.io/pages/configs/common-versions_json/)을
+제공해서 의존성 버전을 통일할 수 있게 도와줍니다. `dependencies`에서 사용하는 의존성은 `range` 없이 특정한 버전을, `devDependencies`에서 사용하는
+의존성은 자동으로 `MINOR`패치까지 업데이트 하는 caret(`^`)을 사용하도록 지정합니다.
 
 ```json-doc
 // common/config/rush/common-versions.json
@@ -2119,7 +2120,7 @@ Node version: v14.19.1
 
 마찬가지로 모두 성공하는군요. 모든 프로젝트의 테스트를 한 번에 실행할 수 있는 `rush test` 커맨드를 추가합니다.
 
-```json
+```json-doc
 // common/config/rush/command-line.json
 {
   ...,
@@ -2163,7 +2164,7 @@ These operations completed successfully:
  
 ## 기타 설정
 
-### 빌드 과정 고도화
+### 빌드 과정에 테스트 포함하기
 
 이전에 [우리가 원하는 빌드 과정](#중복-설정-제거하기-with-heft)은 아래와 같다고 했습니다.
 
@@ -2215,7 +2216,7 @@ Positional arguments:
 ...
 ```
 
-이미 `heft test`에 빌드 과정이 포함되어 있군요. `ts-jest`는 타입스크립트 파일을 컴파일 없이 그대로 입력받아서 테스트를 진행하지만 `heft-jest`를
+이미 `heft test`에 빌드 과정이 포함되어 있습니다. `ts-jest`는 타입스크립트 파일을 컴파일 없이 그대로 입력받아서 테스트를 진행하지만 `heft-jest`를
 수행하려면 타입스크립트를 자바스크립트로 컴파일해야 하기 때문에 테스트 과정에 빌드가 포함되는 것 같습니다. 저는 매번 빌드를 할 때마다 테스트를 실행하기를
 선호하기 때문에 `package.json`의 `build` 스크립트에서 `heft build --clean` 대신 `heft test --clean`을 사용하도록 하겠습니다. 직전에
 추가했던 `rush test` 커맨드는 다시 제거해도 되겠습니다. 나중에 빌드 과정에서 테스트를 제거하고 싶을 때 다시 `rush test` 커맨드를 추가하면 될 것
@@ -2240,14 +2241,306 @@ x) 종료
 
 잘 되는군요.
 
-### `ensureConsistentVersion` 설정 켜기
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-build-with-test](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-build-with-test)에서 확인할 수 있습니다.
 
-TODO:
+### 의존성 버전 통일
 
-- initialize-container int test ignore하고 rebase
-- ensureConsistentVersions 설정 켜기
-- Rush 권장 eslint 설정 적용
-- vscode로 테스트 디버깅하기
-- type은 exact version으로 추가
+#### `ensureConsistentVersion` 활성화
 
-직접 프로젝트 구성하면서 설정에 실패하고 문제를 해결하는 과정까지 모두 자세하게 담음.
+Rush 문서에서는 `ensureConsistentVersion` 옵션을 켜놓기를 권장하고 있습니다. 편한 진행을 위해서 일단은 끄고 튜토리얼을 진행했지만 이제는 켜야 할
+때가 온 것 같습니다. 프로젝트 root의 `rush.json`에서 해당 옵션을 켜줍니다.
+
+```json-doc
+// rush.json
+{
+  ...,
+  "ensureConsistentVersions": true,
+  ...
+}
+```
+
+그리고 `rush update`를 입력합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush check
+
+Starting "rush update"                                                                                              
+                                                                                                                    
+eslint                                                                                                              
+  ^8.12.0                                                                                                           
+   - app-board-cli                                                                                                  
+   - board-domain                                                                                                   
+   - core-rig                                                                                                       
+  ^8.11.0                                                                                                           
+   - preferred versions from common-versions.json
+   
+prettier                                                                                                            
+  2.5.1                                                                                                             
+   - app-board-cli                                                                                                  
+   - preferred versions from common-versions.json                                                                   
+  ^2.6.1                                                                                                            
+   - board-domain                                                                                                   
+
+ts-jest
+  ^27.1.3
+   - app-board-cli
+   - preferred versions from common-versions.json
+  ^27.1.4
+   - board-domain
+
+typescript
+  ^4.6.3
+   - app-board-cli
+   - board-domain
+   - core-rig
+  ^4.6.2
+   - preferred versions from common-versions.json
+
+@typescript-eslint/eslint-plugin
+  ^5.18.0
+   - core-rig
+  ^5.14.0
+   - preferred versions from common-versions.json
+ 
+@typescript-eslint/parser
+  ^5.18.0
+   - core-rig
+  ^5.14.0
+   - preferred versions from common-versions.json
+```
+
+이전에 작성했던 `common-version.json`와 버전이 안 맞아서 경고가 나는군요. `common-version.json`의 `perferredVersions`는 특정 의존성을
+과거 버전에 고정해야 할 때 사용합니다. 프로젝트간의 의존성 버전을 맞추기 위해서는 `ensureConsistentVersion`만으로 충분하니
+`common-version.json`의 `preferredVersions`에 작성했던 버전들을 지워주고 다시 `rush update`를 합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush update
+Starting "rush update"
+
+prettier
+  2.5.1
+   - app-board-cli
+  ^2.6.1
+   - board-domain
+
+ts-jest
+  ^27.1.3
+   - app-board-cli
+  ^27.1.4
+   - board-domain
+
+Found 2 mis-matching dependencies!
+```
+
+`prettier`와 `ts-jest`의 버전이 맞지 않는군요. `prettier`는 `common/autoinstallers/rush-prettier`에서 관리하고 `ts-jest`는
+`heft-jest` 때문에 필요가 없어졌으니 `app/board-cli`와 `domain/board-domain`에서 두 의존성을 모두 지워버리고 `rush update`를 합니다. 
+
+```
+~/nodejs-tutorial-example-rush$ rush update
+
+...
+Rush update finished successfully. (2.47 seconds)
+```
+
+잘 되네요. `@types/jest`도 `@types/heft-jest` 때문에 필요가 없어졌으니 지워줍니다.
+
+### `@types/*` 의존성 버전 고정
+
+Rush 문서를 보다보면 `@types/*` 의존성([DefinitelyTyped 프로젝트](https://github.com/DefinitelyTyped/DefinitelyTyped))에 대해서는
+caret(`^`)이나 tilde(`~`)를 사용하지 말고 정확한 버전을 지정하라고 합니다. 타입 관련된 것은 빡빡할수록 좋긴 합니다.
+
+<figure>
+    <img alt="--save-exact 1" src="/res/17-exact-type-1.png" />
+    <figcaption><a href="https://rushstack.io/pages/heft_tutorials/getting_started/"><code>--save-exact</code>로 정확한 버전을 명시하도록 한다</a></figcaption>
+</figure>
+
+<figure>
+    <img alt="--save-exact 1" src="/res/18-exact-type-2.png" />
+    <figcaption><a href="https://rushstack.io/pages/heft_tutorials/adding_tasks/">여기서도 마찬가지</a></figcaption>
+</figure>
+
+저희는... `@types/node`만 사용하는군요. caret과 tilde 없이 정확한 버전을 사용하도록 변경합니다. 저는 `17.0.23` 버전을 사용합니다.
+
+### VSCode로 테스트 디버깅하기
+
+`heft-jest`관련 문서를 보면 [VSCode로 테스트를 실행해서 디버깅할 수 있도록 설정](https://rushstack.io/pages/heft_tasks/jest/#debugging-jest-tests)하는
+부분이 나옵니다. 저희도 해봅시다.
+
+[https://github.com/microsoft/rushstack](https://github.com/microsoft/rushstack) 프로젝트에는 `apps` 디렉토리 이하에 여러 개의
+프로젝트가 있는데요, 프로젝트마다 `.vscode/launch.json`을 갖습니다. VSCode로 프로젝트를 열 때 모노레포의 root이 아니라 `app/board-cli`나
+`domain/board-domain`을 직접 열어야 `.vscode/launch.json` 설정이 적용됩니다.
+
+`app/board-cli/.vscode/launch.json`과 `domain/board-domain/.vscode/launch.json`에 아래와 같이 작성합니다.
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Jest tests",
+      "program": "${workspaceFolder}/node_modules/@rushstack/heft/lib/start.js",
+      "cwd": "${workspaceFolder}",
+      "args": ["--debug", "test", "--clean"],
+      "console": "integratedTerminal",
+      "sourceMaps": true
+    }
+  ]
+}
+```
+
+그리고 VSCode로 `app/board-cli` 디렉토리를 열어서 `src/index.test.ts`에 브레이크 포인트를 찍고 메뉴의 View -> Run을 선택해서 좌측 상단의
+초록색 ▷버튼(F5)로 테스트를 실행하면 디버거가 브레이크 포인트에서 멈추는 것을 확인할 수 있습니다.
+
+<figure>
+    <a href="/res/19-debug.png" target="_blank">
+      <img alt="Debugging" src="/res/19-debug.png" style="max-width: initial !important; width:100%" />
+    </a>
+    <figcaption>라인 넘버 좌측을 누르면 빨간 점(브레이크 포인트)이 찍힌다.<br/>이 상태에서 F5로 테스트를 실행하면 브레이크 포인트에서 테스트가 멈춘다.</figcaption>
+</figure>
+
+### Rush Stack 권장 eslint 설정 사용
+
+[`@rushstack/eslint-config`](https://www.npmjs.com/package/@rushstack/eslint-config)은 대규모 모노레포를 위한 `eslint` 설정
+모음집입니다. 링크의 Philosophy와 Implementation은 꼭 읽어보세요!
+
+`.eslintrc.js`에서 `extends`할 수 있는 플러그인 목록은 아래와 같습니다. 3개의 Profile중에는 하나만 상속하고 필요에 따라 여러 개의 Mixins를
+선택해서 상속할 수 있습니다.
+
+- Profile
+  - `@rushstack/eslint-config/profile/node`
+    - 기본. 제일 빡빡한 설정입니다.
+  - `@rushstack/eslint-config/profile/node-trusted-tool`
+    - 기본 설정보다 덜 빡빡합니다. 외부로 공개되지 않는 상황에서만 사용합니다.
+  - `@rushstack/eslint-config/profile/web-app`
+    - 웹 브라우저 관련 취약점을 예방하기 위한 규칙이 포함되어 있습니다. Node.js와 웹 브라우저에서 모두 실행되는 프로젝트인 경우에도 선택합니다.
+- Mixins
+  - `@rushstack/eslint-config/mixins/friendly-locals`
+    - 로컬 변수에도 타입을 명시하도록 강제합니다.
+  - `@rushstack/eslint-config/mixins/packlets`
+    - 모노레포의 패키지로 분리하지는 않으면서도 하나의 패키지 안에서 엄격한 `import` 정책을 설정하기 위해 사용합니다. [`@rushstack/eslint-plugin-packlets`](https://www.npmjs.com/package/@rushstack/eslint-plugin-packlets)를 참고하세요
+  - `@rushstack/eslint-config/mixins/tsdoc`
+    - 주석이 [TSDoc](https://github.com/Microsoft/tsdoc) 표준을 지키도록 강제합니다. [API Extractor](https://api-extractor.com/)같은 툴을 사용할 때 도움이 됩니다.
+  - `@rushstack/eslint-config/mixins/react`
+    - 리액트를 사용할 때 추가합니다.
+
+뷔페에 온 느낌이네요. 기본 Profile인 `@rushstack/eslint-config/profile/node`과
+`@rushstack/eslint-config/mixins/friendly-locals` 믹스인을 선택해서 상속해보겠습니다.
+
+`rig/core-rig` 프로젝트로 이동해서 `@rushstack/eslint-config` 의존성을 추가합니다.
+
+```
+~/nodejs-tutorial-example-rush$ cd rig/core-rig
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush add -p @rushstack/eslint-config --dev --caret
+```
+
+`rig/core-rig/profiles/default/.eslintrc.js`의 `"extends"` 속성에 `@rushstack/eslint-config/profile/node`과
+`@rushstack/eslint-config/mixins/friendly-locals`를 추가합니다.
+
+```javascript
+// rig/core-rig/profiles/default/.eslintrc.js
+module.exports = {
+  root: true,
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "@rushstack/eslint-config/profile/node",
+    "@rushstack/eslint-config/mixins/friendly-locals"
+  ],
+};
+```
+
+`rush build`를 입력하면 아래와 같이 에러가 발생합니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush build
+
+...
+--[ FAILURE: board-domain ]----------------------------------[ 3.55 seconds ]--
+
+Error: Plugin "@typescript-eslint" was conflicted between
+"--config » ./node_modules/core-rig/profiles/default/.eslintrc » @rushstack/eslint-config/profile/node" and
+"--config » ./node_modules/core-rig/profiles/default/.eslintrc » plugin:@typescript-eslint/recommended » ./configs/base".
+
+Operations failed.
+```
+
+`@typescript-eslint`와 충돌이 있습니다. `.eslintrc.js`에서 `@typescript-eslint` 관련 설정을 제거하고 `git`의 `pre-commit` hook 덕분에
+필요없어진 `"perttier"`도 제거합니다. `@rushstack/eslint-config/profile/node`이 충분히 고난을 가져다 줄 것 같으니 문서에 나와있는 것처럼
+`eslint:recommended`도 제거하고 `@rushstack/eslint-config/profile/node`, `@rushstack/eslint-config/mixins/friendly-locals`
+만 남겨봅시다...
+
+
+```javascript
+// rig/core-rig/profiles/default/.eslintrc.js
+module.exports = {
+  root: true,
+  extends: [
+    "@rushstack/eslint-config/profile/node",
+    "@rushstack/eslint-config/mixins/friendly-locals"
+  ],
+};
+```
+
+`rig/core-rig/package.json`에서 필요없어진 `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`,
+`eslint-config-prettier`를 제거하고 `rush update`를 한 뒤에 `rush build`를 실행합니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush update
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush build
+...
+  [eslint] src/index.ts:11:1 - (@typescript-eslint/no-floating-promises) Promises must be awaited, end with a call to .catch, end with a call to .then with a rejection handler or be explicitly marked as ignored with the `void` operator.
+
+
+Operations failed.
+```
+
+세상에... 다 적을 수 없지만 한 2억개 정도 경고와 에러가 발생한 것 같습니다. 경고는 일단 놔두고 에러라도 처리해야 할 것 같네요. 다행히 에러 종류는
+[`no-floating-promises`](https://github.com/typescript-eslint/typescript-eslint/blob/v5.6.0/packages/eslint-plugin/docs/rules/no-floating-promises.md)
+밖에 없어서 [`void` operator](https://github.com/typescript-eslint/typescript-eslint/blob/v5.6.0/packages/eslint-plugin/docs/rules/no-floating-promises.md#ignorevoid)를
+사용하는 방식으로 해결했습니다: [https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/2ffa40a6c94faf01ea05634db98f19c97108ebb7](https://github.com/myeongjae-kim/nodejs-tutorial-example/commit/2ffa40a6c94faf01ea05634db98f19c97108ebb7)
+
+```javascript
+// rig/core-rig/profiles/default/.eslintrc.js
+module.exports = {
+  root: true,
+  extends: [
+    "@rushstack/eslint-config/profile/node",
+    "@rushstack/eslint-config/mixins/friendly-locals",
+  ],
+  rules: {
+    "no-void": ["error", { allowAsStatement: true }],
+  },
+};
+```
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush build
+
+...
+Operations succeeded with warnings.
+```
+
+이제 경고가 1억개정도 남아있습니다. `rush build`는 `eslint` 경고가 발생하지만 성공하긴 합니다. `rush deploy --overwrite`까지 해서 배포용
+빌드도 실행이 잘 되는것을 확인했습니다.
+
+### 험난한 모노레포의 길
+
+프로젝트 구성하면서 설정에 실패하고 문제를 해결하는 과정까지 모두 자세하게 담았습니다. 생각보다 글이 길어졌지만 어느정도 만족스러운 모노레포를 구성할 수
+있어서 좋네요.
+
+새로운 비즈니스 로직이 추가되면 `domain` 디렉토리 이하에 프로젝트를 추가합니다. 새로운 애플리케이션이 필요하다면 `app`이하에 프로젝트를 추가하면 됩니다.
+새로운 설정용 프로젝트가 필요하다면 `rig`이하에 rig package 역할의 프로젝트를 추가하면 됩니다. 이 3가지의 구분 외에도 다양한 레이어가 만들어질 수
+있습니다. Remote 요청을 보내는 `client/xxx-client` 프로젝트라든지, 데이터베이스나 캐시같은 외부 의존성을 위한 `infrastructure` 라든지...
+일관성있게 관리하면서 중복을 제거한다면 모노레포는 엄청난 크기로 커지면서도 일정 수준의 복잡도를 유지할 수 있게 됩니다.
+
+[Rush는 대규모 모노레포를 관리하기 위한 정책을 강제하는 기능도 제공합니다.](https://rushjs.io/pages/maintainer/setup_policies/)
+Lerna는 '뼈대만 제공할 테니 나머지는 알아서 하라'는 느낌이었다면, Rush는 '우리가 해보니까 이런게 필요하더라 그래서 준비해뒀어'의 느낌입니다.
+정성대님은 ['Rush로 프론트엔드 모노레포 도입기'](https://medium.com/mildang/rush로-프론트엔드-모노레포-도입기-5da0c5bc9b30)에
+'오픈소스 저장소가 아닌 애플리케이션용 저장소를 위해서는 Lerna보다 Rush가 낫다'고 했는데 그 말에 충분히 공감을 합니다.
+
+모노레포의 길을 쉽지 않지만, 소수의 인원이 고생해서 틀을 만들어 놓으면 그 이득은 조직 전체에 복리로 돌아온다고 생각합니다.
