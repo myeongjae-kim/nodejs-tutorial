@@ -453,7 +453,7 @@ domain/board-domain/src/article
     "report": "jest unit --collect-coverage && open coverage/lcov-report/index.html",
     "lint": "eslint . --ext .ts,.tsx",
     "prettier": "prettier --write .",
-    "clean": "rm -rf dist/*"
+    "clean": "rm -rf dist"
   }
 }
 ```
@@ -1624,7 +1624,630 @@ x) 종료
 
 ### `.eslintrc.js` 중복 없애기
 
-To be developed...
+Rush Stack에서는 `.eslintrc.js`에 대해서 아래와 같이 말하고 있습니다.
+
+> 모노레포의 root 폴더에 중앙화된 `.eslintrc.js` 파일을 놓기를 추천하지 않는다. 이는 프로젝트들이 독립적이어야 하고 모노레포간에 프로젝트들을
+> 옮기기 쉬워야 한다는 Rush의 원칙과 맞지 않는다.
+> 
+> It's not recommended to place a centralized .eslintrc.js in the monorepo root folder. This violates Rush's principle
+> that projects should be independent and easily movable between monorepos.
+> 
+> \- ["eslint" \| Rush Stack](https://rushstack.io/pages/heft_tasks/eslint/#config-files)
+
+그리고 이어지는 코드를 보면 `tsconfig.json`과 마찬가지로 rig package에 설정을 보관하고 개별 프로젝트의 `.eslintrc`에서 상속해서 사용합니다.
+
+```javascript
+// This is a workaround for https://github.com/eslint/eslint/issues/3458
+require('@rushstack/eslint-config/patch/modern-module-resolution');
+
+module.exports = {
+  extends: ['@rushstack/eslint-config/profile/node'],
+  parserOptions: { tsconfigRootDir: __dirname }
+};
+```
+
+저희도 동일하게 해보겠습니다. `.eslintrc.js`를 `core-rig` 프로젝트로 옮기고 `app/board-cli`와 `domain/board-domain` 프로젝트에
+`@rushstack/eslint-config`를 개발 의존성으로 추가합니다 (위 코드의 `require` 부분을 사용하기 위함).
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ cp .eslintrc.js ../../rig/core-rig/profiles/default/
+~/nodejs-tutorial-example-rush/app/board-cli$ rush add -p @rushstack/eslint-config --dev --caret
+~/nodejs-tutorial-example-rush/app/board-cli$ cd ../../domain/board-domain
+~/nodejs-tutorial-example-rush/domain/board-domain$ rush add -p @rushstack/eslint-config --dev --caret
+```
+
+그리고 `rig/core-rig` 프로젝트에 `eslint` 관련 의존성을 개발 의존성으로 설치합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ cd ../../rig/core-rig
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush add -p @typescript-eslint/eslint-plugin -p @typescript-eslint/parser -p typescript -p eslint -p eslint-config-prettier --dev --caret
+```
+
+`app/board-cli/.eslintrc.js`와 `domain/board-domain/.eslintrc.js`를 아래처럼 변경합니다.
+
+```javascript
+// This is a workaround for https://github.com/eslint/eslint/issues/3458
+require('@rushstack/eslint-config/patch/modern-module-resolution');
+
+module.exports = {
+  extends: ['core-rig/profiles/default/.eslintrc'],
+  parserOptions: { tsconfigRootDir: __dirname }
+};
+```
+
+`app/board-cli/index.ts`에서 `eslint` 규칙을 위배해보겠습니다.
+
+<figure>
+    <img alt="Eslint works well" src="/res/16-eslint.png" />
+    <figcaption>VSCode의 eslint 플러그인이 잘 작동합니다.</figcaption>
+</figure>
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ cd ../../app/board-cli
+~/nodejs-tutorial-example-rush/app/board-cli$ rushx lint
+
+...
+Rush Multi-Project Build Tool 5.64.0 - Node.js 14.19.1 (LTS)
+> "eslint . --ext .ts,.tsx"
 
 
-직접 프로젝트 구성하면서 설정에 실패하고 문제를 해결하는 과정까지 모두 자세하게 담았다.
+/Users/mj/projects/nodejs-tutorial-example-rush/app/board-cli/src/index.ts
+  7:7  warning  'applicationByStateManager' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+```
+
+작동이 잘 됩니다. `.eslintignore`는 root으로 올려줍니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ mv .eslintignore ../../
+~/nodejs-tutorial-example-rush/app/board-cli$ rm ../../domain/board-domain/.eslintignore
+```
+
+[Rush Stack 문서의 Riggable Dependencies 항목](https://rushstack.io/pages/heft/rig_packages/#3-riggable-dependencies)을 보면
+`typescript`와 `eslint` 의존성은 rig package로 제공할 수 있다고 합니다.
+
+> The rig package can also provide NPM dependencies, to avoid having to specify them as "devDependencies" for your project. The following tool packages can be provided by the rig:
+> 
+> - typescript
+> - @microsoft/api-extractor
+> - eslint
+> - tslint
+> 
+> Today, only these packages can be provided via a rig. Providing dependencies via a rig is optional. Your local project's devDependencies take precedence over the rig.
+> 
+> \- [Using rig packages \| Rush Stack](https://rushstack.io/pages/heft/rig_packages/#3-riggable-dependencies)
+
+`typescript`, `eslint`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`,  `eslint-config-prettier`
+이 5개의 의존성은 `app/board-cli`, `domain/board-domain`, `rig/core-rig` 3개의 패키지에서 모두 의존하고 있습니다. rig package에만
+남겨놔도 될 것 같으니 `app/board-cli`, `domain/board-domain`에서 위 의존성들을 제거합니다.
+
+`typescript`, `eslint`는 `rig/core-rig/package.json`에서 `devDependencies`가 아니라 `dependencies`에 있어야 합니다.
+
+> Heft resolves each riggable tool independently, using the following procedure:
+> 
+> 1. If the tool package is listed in the devDependencies for the local project, then the tool is resolved from the current project folder. (This step does NOT consider dependencies or peerDependencies.)
+> 2. OTHERWISE, if the current project has a rig.json file, and if the rig's package.json lists the tool in its dependencies, then the tool is resolved from the rig package folder. (This step does NOT consider devDependencies or peerDependencies.)
+> 3. OTHERWISE, the tool is resolved from the current project folder. If it can't be found there, then an error is reported.
+> 
+> \- [Using rig packages \| Rush Stack](https://rushstack.io/pages/heft/rig_packages/#3-riggable-dependencies)
+
+의존성을 제거하는 [`rush remove`같은 커맨드는 아직 없습니다.](https://github.com/microsoft/rushstack/issues/1457)
+`app/board-cli/pakcage.json`, `domain/board-domain/package.json`에서 수동으로 의존성을 제거하고 `rig/coer-rig/package.json`에서
+`typescript`와 `eslint`를 `dependencies`로 옮긴 뒤 `rush update`를 입력하면...
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ rush update
+...
+ ERR_PNPM_PEER_DEP_ISSUES  Unmet peer dependencies                                                                      
+                                                                                                                        
+../../app/board-cli
+├─┬ ts-jest
+│ └── ✕ missing peer typescript@">=3.8 <5.0"
+├─┬ ts-node
+│ └── ✕ missing peer typescript@>=2.7
+└─┬ @rushstack/eslint-config
+  ├── ✕ missing peer typescript@>=3.0.0
+  ├── ✕ missing peer eslint@"^6.0.0 || ^7.0.0 || ^8.0.0"
+...
+```
+
+`pnpm`의 강력한 peer dependency 정책때문에 잘 안됩니다. `ts-jest`와 `ts-node`에서 `typescript`를 필요로 하는군요. 어쩔 수 없이
+`typescript`는 다시 추가하고, `@rushstack/eslint-config`는 `eslint`를 필요로 하기때문에 `eslint`도 다시 추가합니다.
+`@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`는 `app/board-cli`와 `domain/board-domain`에서 직접 사용하는게
+아니라 `.eslintrc.js`에서 사용하기 때문에 이 둘은 `rig/core-rig/package.json`에만 남겨도 됩니다.
+
+pnpm때문에 문서에 나와있는 것과는 달리 `typescript`와 `eslint`를 rig package로 옮기진 못했지만 `@typescript-eslint/eslint-plugin`,
+`@typescript-eslint/parser`는 `rig/core-rig`에서만 의존하고 나머지 프로젝트에서는 제거했습니다. 뭔가 많이 바꿨으니 `rush update --full`을
+하고 빌드와 배포까지 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ rush update --full --purge && rush build && rush deploy --overwrite
+...
+The operation completed successfully. 
+~/nodejs-tutorial-example-rush/app/board-cli$ cd../../
+~/nodejs-tutorial-example-rush$ node common/deploy/app/board-cli
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+```
+
+실행이 잘 됩니다.
+
+- [x] `.eslintignore`
+- [x] `.eslintrc.js`
+- [ ] `.prettierignore`
+- [ ] `.prettierrc.json`
+- [ ] `.jest.config.js`
+- [x] `tsconfig.json`
+
+이제 `prettier`와 `jest` 설정의 중복만 없애면 됩니다.
+
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-remove-eslintrc-dup](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-remove-eslintrc-dup)에서 확인할 수 있습니다.
+
+### `prettierrc.json` 중복 없애기
+
+Rush Stack에서는 Prettier에 대해서 아래와 같이 말하고 있습니다.
+
+> [Prettier](https://rushjs.io/pages/maintainer/enabling_prettier/): This tool manages trivial syntax aspects such as spaces, commas, and semicolons. Because these aspects
+> normally don't affect code semantics, we never bother the developer with error messages about it, nor is it part of
+> the build. Instead, Prettier reformats the code automatically via a git commit hook. To se this up, see the [Enabling Prettier](https://rushjs.io/pages/maintainer/enabling_prettier/)
+> tutorial on the Rush website.
+> 
+> \- ["eslint" task \| Rush Stack](https://rushstack.io/pages/heft_tasks/eslint/#when-to-use-it)
+
+요약하자면, Prettier는 코드의 의미(semantics)에 영향을 주지 않으니 `git`의 commit hook 정도로만 사용해도 충분하다고 합니다. commit hook에서
+수행하는 작업은 최대한 빨라야 합니다. 만약 commit을 할 때마다 10초 이상씩 걸리게 된다면 커밋 한 번 한 번이 부담스러워지게 되고 커밋 하나 하나의 덩치가
+커지게 됩니다. 작은 단위로 커밋을 하게되면 커밋 히스토리만으로도 작업자의 의도를 알 수 있고 커밋당 변경사항도 많지 않아 코드 리뷰때도 편합니다.
+`pretty-quick` 패키지는 변경이 있는 파일에 대해서만 Prettier를 실행하기 때문에 속도가 빨라서 Rush에서도 사용을 권장하고 있습니다.
+
+[Enabling Prettier](https://rushjs.io/pages/maintainer/enabling_prettier/) 가이드를 따라서 진행해보겠습니다. 일단
+`.prettierrc.json`과 `.prettierignore`를 프로젝트 root로 옮깁니다.
+
+```
+~/nodejs-tutorial-example-rush$ mv app/board-cli/.prettierrc.json app/board-cli/.prettierignore .
+~/nodejs-tutorial-example-rush$ rm domain/board-domain/.prettierrc.json domain/board-domain/.prettierignore
+```
+
+프로젝트를 세팅할 때 commit hook을 자동으로 설정하도록 [`rush init-autoinstaller`](https://rushjs.io/pages/commands/rush_init-autoinstaller/)
+를 사용해서 `common/autoinstallers/rush-prettier/package.json` 파일을 생성합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush init-autoinstaller --name rush-prettier
+
+Starting "rush init-autoinstaller"
+
+Creating package: /Users/mj/projects/nodejs-tutorial-example-rush/common/autoinstallers/rush-prettier/package.json
+
+File successfully written. Add your dependencies before committing.
+```
+
+`common/autoinstallers/rush-prettier`로 이동해서 `prettier`와 `pretty-quick` 의존성을 추가하고 autoinstaller를 업데이트합니다.
+
+```
+~/nodejs-tutorial-example-rush$ cd common/autoinstallers/rush-prettier
+~/nodejs-tutorial-example-rush/common/autoinstallers/rush-prettier$ pnpm install prettier pretty-quick
+...
+dependencies:
++ prettier 2.6.2
++ pretty-quick 3.1.3
+
+~/nodejs-tutorial-example-rush/common/autoinstallers/rush-prettier$ rush update-autoinstaller --name rush-prettier
+```
+
+지금까지의 변경사항은 아래와 같습니다. 모두 추가하고 커밋합니다.
+
+```
+~/nodejs-tutorial-example-rush/common/autoinstallers/rush-prettier$ git status                                                                                                         ─╯
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        deleted:    ../../../app/board-cli/.prettierignore
+        deleted:    ../../../app/board-cli/.prettierrc.json
+        deleted:    ../../../domain/board-domain/.prettierignore
+        deleted:    ../../../domain/board-domain/.prettierrc.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        ../../../.prettierignore
+        ../../../.prettierrc.json
+        ../
+
+no changes added to commit (use "git add" and/or "git commit -a")
+~/nodejs-tutorial-example-rush/common/autoinstallers/rush-prettier$ cd ../../../
+~/nodejs-tutorial-example-rush$ git add .
+~/nodejs-tutorial-example-rush$ git commit
+```
+
+그리고 [이전에 `rush clean` 커맨드를 추가](#rush-clean-커맨드-추가)했던 것처럼 `rush prettier` 커맨드를 추가합니다. 이번에 `commandKind`는
+`global`입니다.
+
+```json-doc
+// common/config/rush/command-line.json
+{
+  "commands": [
+    ...,
+    {
+      "name": "prettier",
+      "commandKind": "global",
+      "summary": "Used by the pre-commit Git hook. This command invokes Prettier to reformat staged changes.",
+      "safeForSimultaneousRushProcesses": true,
+
+      "autoinstallerName": "rush-prettier",
+
+      // This will invoke common/autoinstallers/rush-prettier/node_modules/.bin/pretty-quick
+      "shellCommand": "pretty-quick --staged"
+    }
+  ]
+}
+```
+
+커맨드를 추가했으니 `rush prettier`를 입력합니다. 두 번 입력합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush prettier # 첫 번째
+...
+
+dependencies:
++ prettier 2.6.2
++ pretty-quick 3.1.3
+Auto install completed successfully
+
+🔍  Finding changed files since git revision 55aae42.
+🎯  Found 0 changed files.
+✅  Everything is awesome!
+~/nodejs-tutorial-example-rush$ rush prettier # 두 번째
+...
+
+Autoinstaller folder is already up to date
+
+🔍  Finding changed files since git revision 55aae42.
+🎯  Found 0 changed files.
+✅  Everything is awesome!
+```
+
+첫 번째 실행해서는 관련 의존성을 설치하고 `pretty-quick --staged`를 실행했습니다. 두 번째 실행에서는 이미 의존성이 설치되어 있으므로
+`pretty-quick --staged`를 실행했습니다. 최신 커밋과 비교해서 변경된 파일에만 Prettier를 적용하는 것을 알 수 있네요. `.ts`파일을 무작위로 선택해서
+변경한 뒤 `git add`로 파일을 추가하고 `rush prettier`를 실행하면 Prettier가 파일을 검사하고 변경합니다.
+
+```
+# app/board-cli/src/index.ts를 변경하고 rush prettier를 실행
+~/nodejs-tutorial-example-rush$ rush prettier
+...
+
+Autoinstaller folder is already up to date
+
+🔍  Finding changed files since git revision 55aae42.
+🎯  Found 3 changed files.
+✍️  Fixing up app/board-cli/src/index.ts.
+✅  Everything is awesome!
+```
+
+마지막으로 `common/git-hooks/pre-commit` 파일을 생성해서 아래 내용을 붙여넣어줍니다.
+
+```sh
+#!/bin/sh
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+
+# Invoke the "rush prettier" custom command to reformat files whenever they
+# are committed. The command is defined in common/config/rush/command-line.json
+# and uses the "rush-prettier" autoinstaller.
+node common/scripts/install-run-rush.js prettier || exit $?
+```
+
+`rush install`을 입력해서 commit hook을 등록합니다. `.git/hooks/pre-commit` 파일이 위 내용으로 잘 생성됐는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rush install # autoinstaller가 hook을 설치한다.
+...
+Rush install finished successfully. (2.00 seconds) 
+
+~/nodejs-tutorial-example-rush$ cat .git/hooks/pre-commit # 설치한 pre-commit hook 확인
+#!/bin/sh
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+
+# Invoke the "rush prettier" custom command to reformat files whenever they
+# are committed. The command is defined in common/config/rush/command-line.json
+# and uses the "rush-prettier" autoinstaller.
+node common/scripts/install-run-rush.js prettier || exit $?
+```
+
+`git` hook은 `.git/hooks`에 넣어야 동작하는데, `.git` 디렉토리는 `git` 자체에 대한 디렉토리라 이 디렉토리를 `git`으로 관리할 수는 없습니다.
+그래서 Rush는 autoinstaller를 사용하는 방법으로 모든 개발자가 `pre-commit` hook을 사용할 수 있도록 자동화했습니다. 다른 방법으로는 `git`이
+사용하는 hook 디렉토리를 `.git/hooks`가 아니라 `.git` 디렉토리 바깥으로 변경하는 방법이 있는데, 어쨌든 `git clone`을 한 뒤에 특정한 작업을
+수행해줘야 한다는 점은 변하지 않습니다.
+
+※ 저는 [Prettier - Code formatter](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) VSCode
+플러그인으로 VSCode에서 파일을 저장할 때마다 해당 파일에 대해서 자동으로 Prettier를 실행하도록 했습니다.
+
+```json-doc
+// .vscode/settings.json
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.fixAll.eslint": true
+  },
+  ...
+}
+```
+
+지금까지 작성한 코드는 [nodejs-tutorial-example:chapter-5-remove-jest-dup](https://github.com/myeongjae-kim/nodejs-tutorial-example/tree/chapter-5-remove-jest-dup)에서 확인할 수 있습니다.
+
+- [x] `.eslintignore`
+- [x] `.eslintrc.js`
+- [x] `.prettierignore`
+- [x] `.prettierrc.json`
+- [ ] `.jest.config.js`
+- [x] `tsconfig.json`
+
+이제 `jest.config.js`만 남았군요.
+
+### `jest.config.js` 중복 없애기
+
+Jest의 경우는 약간 복잡합니다. 타입스크립트와 Jest를 함께 사용하는 방법은 `babel-jest`를 사용하거나 `ts-jest`를 사용하는 방법이 있습니다.
+그러나 [`babel-jest`와 `ts-jest`가 모두 마음에 들지 않았던 Heft팀은 `heft-jest`를 만들었습니다.](https://rushstack.io/pages/heft_tasks/jest/#differences-from-ts-jest)
+`heft-jest`는 기존의 Jest가 mocking하는 방식에서 몇 가지 주의해야 할 점이 생기고, 이에 대해서 개발자가 실수하지 않도록 [`eslint` plugin](https://www.npmjs.com/package/@rushstack/eslint-plugin#rushstackhoist-jest-mock)을
+만들어서 제공합니다. 제가 말씀드린 내용 모두 ["jest" task 문서](https://rushstack.io/pages/heft_tasks/jest/)에 자세하게 나와있습니다.
+
+["Riggable" config files](https://rushstack.io/pages/heft/rig_packages/#2-riggable-config-files)는 개별 프로젝트에 설정 파일이
+없을 때 rig package의 config의 설정을 참고하게 되는 파일들입니다. `jest.config.json`도 riggable config이므로 설정 파일을 rig package로
+옮겨서 중복을 제거할 수 있습니다.
+
+문서를 따라서 설정해보겠습니다.
+
+`rig/core-rig` 프로젝트에 `@rushstack/heft`, `@rushstack/heft-jest-plugin`, `@types/heft-jest` 의존성을 설치합니다.
+
+```
+~/nodejs-tutorial-example-rush$ cd rig/core-rig
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush add -p @rushstack/heft -p @rushstack/heft-jest-plugin --caret --dev
+~/nodejs-tutorial-example-rush/rig/core-rig$ rush add -p @types/heft-jest --exact --dev
+```
+
+그리고 `rig/core-rig/profiles/default/tsconfig.json`의 `types`에 `"node"`와 `"heft-jest"`를 추가합니다. `"sourceMap"` 옵션도
+켜줍니다. `"sourceMap"`은 컴파일 결과물에 `.js.map` 파일도 출력합니다. 이 파일이 있어야 `heft-jest`가 테스트를 수행할 수 있습니다.
+
+```json-doc
+{
+  "compilerOptions": {
+    ...,
+    "types": ["node", "heft-jest"],
+    "sourceMap": true,
+    ...,
+  }
+}
+```
+
+프로젝트 root에 `rig/core-rig/profiles/default/config/heft.json` 파일을 아래와 같이 추가합니다.
+
+```json-doc
+// config/heft.json
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/heft/heft.schema.json",
+  "heftPlugins": [{ "plugin": "@rushstack/heft-jest-plugin" }]
+}
+```
+
+`rig/core-rig/profiles/default/config/jest.config.json` 파일도 추가합니다.
+
+```json-doc
+// config/jest.config.json
+{
+  "extends": "@rushstack/heft-jest-plugin/includes/jest-shared.config.json",
+  "collectCoverageFrom": ["src/**/*.{ts,tsx}", "!src/**/__test__/**"],
+  "testPathIgnorePatterns": ["/node_modules/", "/dist/"]
+}
+```
+
+이전에 추가했던 `domain/board-domain/config/rig.json`을 복사해서 `app/board-cli/config/rig.json`을 생성합니다.
+
+```
+~/nodejs-tutorial-example-rush/rig/core-rig$ cd ../../
+~/nodejs-tutorial-example-rush$ mkdir app/board-cli/config
+~/nodejs-tutorial-example-rush$ cp domain/board-domain/config/rig.json app/board-cli/config
+```
+
+더 이상 필요없어진 `app/board-cli/jest.config.js`, `domain/board-domain/jest.config.js` 파일을 제거하고 테스트를 실행합니다.
+
+```
+~/nodejs-tutorial-example-rush$ rm app/board-cli/jest.config.js domain/board-domain/jest.config.js
+~/nodejs-tutorial-example-rush$ cd app/board-cli
+~/nodejs-tutorial-example-rush/app/board-cli$ heft test
+Project: app-board-cli@1.0.0
+Heft version: 0.44.5
+Node version: v14.19.1
+Error: The transpiler output folder does not exist:
+  /Users/mj/projects/nodejs-tutorial-example-rush/app/board-cli/lib
+Was the compiler invoked? Is the "emitFolderNameForTests" setting correctly specified in config/typescript.json?
+```
+
+`config/typescript.json` 파일이 없다고 에러가 발생합니다. `rig/core-rig/profiles/default/config/typescript.json` 파일을 생성해
+아래 내용을 넣어줍니다.
+
+```json-doc
+// rig/core-rig/profiles/default/config/typescript.json
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/heft/typescript.schema.json",
+  "emitFolderNameForTests": "./dist"
+}
+```
+
+다시 `heft test`를 입력하면 테스트가 모두 성공합니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ heft test
+...
+
+Tests finished:
+  Successes: 38
+  Failures: 0
+  Total: 38
+ ---- Test finished (10772ms) ---- 
+-------------------- Finished (14.993s) --------------------
+Project: app-board-cli@1.0.0
+Heft version: 0.44.5
+Node version: v14.19.1
+```
+
+`domain/board-domain` 프로젝트에서도 테스트가 성공하는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/app/board-cli$ cd ../../domain/board-domain
+~/nodejs-tutorial-example-rush/domain/board-domain$ heft test
+...
+
+Tests finished:
+  Successes: 7
+  Failures: 0
+  Total: 7
+ ---- Test finished (2620ms) ---- 
+-------------------- Finished (6.316s) --------------------
+Project: board-domain@1.0.0
+Heft version: 0.44.5
+Node version: v14.19.1
+```
+
+마찬가지로 모두 성공하는군요. 모든 프로젝트의 테스트를 한 번에 실행할 수 있는 `rush test` 커맨드를 추가합니다.
+
+```json
+// common/config/rush/command-line.json
+{
+  ...,
+  "commands": [
+    ...,
+    {
+      "commandKind": "bulk",
+      "name": "test",
+      "summary": "Run tests of each project.",
+      "description": "Run tests of each project.",
+      "enableParallelism": true
+    }
+  ]
+}
+```
+
+`app/board-cli/package.json`과 `domain/board-domain/package.json`의 `"test"` 스크립트를 `"heft test --clean"`으로 변경합니다.
+`rig/core-rig/package.json`은 `"test": ""`로 입력합니다. `rush test`가 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ rush test
+...
+
+==[ SUCCESS: 2 operation ]=====================================================                                     
+                                                                                                                    
+These operations completed successfully:                                                                            
+  board-domain    5.31 seconds 
+  app-board-cli   7.98 seconds 
+```
+
+잘 되는군요.
+
+- [x] `.eslintignore`
+- [x] `.eslintrc.js`
+- [x] `.prettierignore`
+- [x] `.prettierrc.json`
+- [x] `.jest.config.js`
+- [x] `tsconfig.json`
+
+모든 설정의 중복을 Rush Stack에서 권장하는 방식으로 제거했습니다 🎉🎊🎉⭐️🔥☀️🎉
+ 
+## 기타 설정
+
+### 빌드 과정 고도화
+
+이전에 [우리가 원하는 빌드 과정](#중복-설정-제거하기-with-heft)은 아래와 같다고 했습니다.
+
+1. `prettier`로 코드 스타일 정리
+2. `eslint`로 규칙에 어긋나는 코드가 있는지 확인
+3. `typescript`로 컴파일
+
+1번은 `pre-commit` hook으로 대체했고, 개별 프로젝트에서 `heft build`를 입력하면 `eslint`로 `lint` 과정을 수행한 뒤에 `typescript`로
+컴파일을 해서 결과물을 `dist` 디렉토리에 생성합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ heft clean
+~/nodejs-tutorial-example-rush/domain/board-domain$ heft build
+Project build folder is ".../nodejs-tutorial-example-rush/domain/board-domain"
+Using rig configuration from ./node_modules/core-rig/profiles/default
+Starting build ---- Pre-compile started ---- 
+ ---- Pre-compile finished (1ms) ---- 
+ ---- Compile started ---- 
+[typescript] The TypeScript compiler version 4.6.3 is newer than the latest version that was tested with Heft (4.5); it may not work correctly.
+[typescript] Using TypeScript version 4.6.3
+[eslint] Using ESLint version 8.12.0
+ ---- Compile finished (3267ms) ---- 
+ ---- Bundle started ---- 
+ ---- Bundle finished (1ms) ---- 
+ ---- Post-build started ---- 
+ ---- Post-build finished (2ms) ---- 
+-------------------- Finished (3.952s) --------------------
+Project: board-domain@1.0.0
+Heft version: 0.44.5
+Node version: v14.19.1
+
+~/nodejs-tutorial-example-rush/domain/board-domain$ ls dist
+article
+```
+
+빌드 과정을 보면 컴파일 과정에서 `eslint`를 실행합니다. `eslint` 규칙을 위배한 후에 빌드를 하면 규칙에 대한 경고까지 출력이 됩니다. 빌드 이후에
+테스트까지 수행하려면 어떻게 해야할까요? `heft build && heft test`를 입력하면 될까요? 그럴 필요 없이 그냥 `heft test`만 입력해도 됩니다.
+
+[heft 커맨드의 설명서](https://rushstack.io/pages/heft/cli/#heft)를 보면 아래처럼 나와있습니다.
+
+```
+...
+Positional arguments:
+  <command>
+    clean        Clean the project
+    build        Build the project.
+    start        Run the local server for the current project
+    test         Build the project and run tests.
+...
+```
+
+이미 `heft test`에 빌드 과정이 포함되어 있군요. `ts-jest`는 타입스크립트 파일을 컴파일 없이 그대로 입력받아서 테스트를 진행하지만 `heft-jest`를
+수행하려면 타입스크립트를 자바스크립트로 컴파일해야 하기 때문에 테스트 과정에 빌드가 포함되는 것 같습니다. 저는 매번 빌드를 할 때마다 테스트를 실행하기를
+선호하기 때문에 `package.json`의 `build` 스크립트에서 `heft build --clean` 대신 `heft test --clean`을 사용하도록 하겠습니다. 직전에
+추가했던 `rush test` 커맨드는 다시 제거해도 되겠습니다. 나중에 빌드 과정에서 테스트를 제거하고 싶을 때 다시 `rush test` 커맨드를 추가하면 될 것
+같습니다.
+
+`app/board-cli/package.json`, `domain/board-domain/package.json`의 `"build"` 스크립트를 `heft build --clean`으로 변경하고
+`app/board-cli/package.json`, `domain/board-domain/package.json`, `rig/core-rig/package.json`에서 `"test"` 스크립트를
+제거합니다. `common/config/rush/command-line.json`에서 다시 `test` 커맨드를 제거합니다.
+
+그리고 `rush deploy`까지 성공하고 애플리케이션 실행이 잘 되는지 확인합니다.
+
+```
+~/nodejs-tutorial-example-rush/domain/board-domain$ cd ../../
+~/nodejs-tutorial-example-rush$ rush clean && rush rebuild && rush deploy --overwrite
+~/nodejs-tutorial-example-rush$ node common/deploy/app/board-cli
+1) 목록 조회
+2) 쓰기
+x) 종료
+
+선택: 
+```
+
+잘 되는군요.
+
+### `ensureConsistentVersion` 설정 켜기
+
+TODO:
+
+- initialize-container int test ignore하고 rebase
+- ensureConsistentVersions 설정 켜기
+- Rush 권장 eslint 설정 적용
+- vscode로 테스트 디버깅하기
+- type은 exact version으로 추가
+
+직접 프로젝트 구성하면서 설정에 실패하고 문제를 해결하는 과정까지 모두 자세하게 담음.
