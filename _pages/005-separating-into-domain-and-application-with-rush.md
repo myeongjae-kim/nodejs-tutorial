@@ -208,7 +208,7 @@ Next you should probably run "rush build" or "rush rebuild"
 Rush update finished successfully. (52.95 seconds)
 ```
 
-`app/board-cli/dist/node_modules`를 확인해보면 의존성이 심볼릭 링크로 연결된 것을 확인할 수 있습니다.
+`app/board-cli/node_modules`를 확인해보면 의존성이 심볼릭 링크로 연결된 것을 확인할 수 있습니다.
 
 ```
 ~/nodejs-tutorial-example-rush$ ls -al app/board-cli/node_modules
