@@ -776,11 +776,16 @@ Jest의 경우는 약간 복잡합니다. 타입스크립트와 Jest를 함께 �
 문서를 따라서 설정해보겠습니다.
 
 `rig/core-rig` 프로젝트에 `@rushstack/heft`, `@rushstack/heft-jest-plugin`, `@types/heft-jest` 의존성을 설치합니다.
+`@types/heft-jest`는 테스트가 있는 모든 모듈, 그러니까 `app/board-cli`, `domain/board-domain`에도 설치해야 합니다.
 
 ```
 ~/nodejs-tutorial-example-rush$ cd rig/core-rig
 ~/nodejs-tutorial-example-rush/rig/core-rig$ rush add -p @rushstack/heft -p @rushstack/heft-jest-plugin --caret --dev
 ~/nodejs-tutorial-example-rush/rig/core-rig$ rush add -p @types/heft-jest --exact --dev
+~/nodejs-tutorial-example-rush/rig/core-rig$ cd ../../app/board-cli
+~/nodejs-tutorial-example-rush/app/board-cli$ rush add -p @types/heft-jest --exact --dev
+~/nodejs-tutorial-example-rush/app/board-cli$ cd ../../domain/board-domain
+~/nodejs-tutorial-example-rush/domain/board-domain$ rush add -p @types/heft-jest --exact --dev
 ```
 
 그리고 `rig/core-rig/profiles/default/tsconfig.json`의 `types`에 `"node"`와 `"heft-jest"`를 추가합니다. `"sourceMap"` 옵션도
@@ -1013,7 +1018,7 @@ x) 종료
 
 ### 의존성 버전 통일
 
-#### `ensureConsistentVersion` 활성화
+**`ensureConsistentVersion` 활성화**
 
 Rush 문서에서는 `ensureConsistentVersion` 옵션을 켜놓기를 권장하고 있습니다. 편한 진행을 위해서 일단은 끄고 튜토리얼을 진행했지만 이제는 켜야 할
 때가 온 것 같습니다. 프로젝트 root의 `rush.json`에서 해당 옵션을 켜줍니다.
