@@ -633,8 +633,8 @@ no changes added to commit (use "git add" and/or "git commit -a")
 ~/nodejs-tutorial-example-rush$ git commit
 ```
 
-그리고 [이전에 `rush clean` 커맨드를 추가](#rush-clean-커맨드-추가)했던 것처럼 `rush prettier` 커맨드를 추가합니다. 이번에 `commandKind`는
-`global`입니다.
+그리고 [이전에 `rush clean` 커맨드를 추가](/pages/005-separating-into-domain-and-application-with-rush/#rush-clean-커맨드-추가)했던
+것처럼 `rush prettier` 커맨드를 추가합니다. 이번에 `commandKind`는 `global`입니다.
 
 ```json-doc
 // common/config/rush/command-line.json
@@ -939,7 +939,7 @@ These operations completed successfully:
 
 ### 빌드 과정에 테스트 포함하기
 
-이전에 [우리가 원하는 빌드 과정](#중복-설정-제거하기-with-heft)은 아래와 같다고 했습니다.
+이전에 [우리가 원하는 빌드 과정](#heft로-중복-설정-제거하기)은 아래와 같다고 했습니다.
 
 1. `prettier`로 코드 스타일 정리
 2. `eslint`로 규칙에 어긋나는 코드가 있는지 확인
