@@ -1,7 +1,7 @@
 ---
 title: 5. 도메인과 애플리케이션의 분리 (with Rush)
 author: Myeongjae Kim
-date: 2022-03-12
+date: 2022-04-05
 category: Tutorial
 layout: post
 ---

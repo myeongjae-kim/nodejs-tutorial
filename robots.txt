@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: http://nodejs.myeongjae.kim/sitemap.xml
