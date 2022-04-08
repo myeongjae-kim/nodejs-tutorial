@@ -1,7 +1,7 @@
 ---
 title: (작성중) 9. 영속성
 author: Myeongjae Kim
-date: 2022-03-12
+date: 2022-04-07
 category: Tutorial
 layout: post
 ---

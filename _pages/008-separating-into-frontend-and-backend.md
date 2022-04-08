@@ -1,7 +1,7 @@
 ---
 title: (작성중) 8. 프론트엔드와 백엔드의 분리 (with Express)
 author: Myeongjae Kim
-date: 2022-03-12
+date: 2022-04-07
 category: Tutorial
 layout: post
 ---
