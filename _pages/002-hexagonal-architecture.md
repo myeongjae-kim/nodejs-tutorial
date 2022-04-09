@@ -337,7 +337,7 @@ DTO가 뭘까요? 단순하게 번역하면 데이터 전송 객체인데... 데
 > It needs to be serializable to go across the connection. Usually an assembler is used on the server side to
 > transfer data between the DTO and any domain objects.
 > 
-> \- Martin Fowler, “P of EAA: Data Transfer Object”. 2022년 3월 19일 접근. https://martinfowler.com/eaaCatalog/dataTransferObject.html.
+> \- Martin Fowler, “P of EAA: Data Transfer Object”. 2022년 3월 19일 접근. https://martinfowler.com/eaaCatalog/dataTransferObject.html
 
 DTO의 전송(Transfer)는 주로 네트워크 통신과 관련(원격 퍼사드)된 의미로 사용한다고 볼 수 있습니다. `ArticleRequest`, `ArticleResponse`는
 원격 요청이 아니라 애플리케이션 내부에서 데이터를 옮기기 위해 사용하는 타입이니 '전송'이라는 단어는 어울리지 않습니다. 그럼 데이터 객체(Data Object)라고

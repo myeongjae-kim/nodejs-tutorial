@@ -80,16 +80,34 @@ layout: home
 - 객체지향 프로그래밍 패러다임에 대한 이해
 - 타입스크립트
 
-## 참고자료
-
-- [로버트 C. 마틴, 송준의. _클린 아키텍처_. 서울: 인사이트, 2019](http://ebook.insightbook.co.kr/book/69)
-- [조영호. _오브젝트_. 파주: 위키북스, 2019](https://wikibook.co.kr/object/)
-- [톰 홈버그, 박소은. _만들면서 배우는 클린 아키텍처_. 파주: 위키북스, 2021](https://wikibook.co.kr/clean-architecture/)
-
 ## Repository
 
 - [https://github.com/myeongjae-kim/nodejs-tutorial](https://github.com/myeongjae-kim/nodejs-tutorial)
 - 질문은 [이슈](https://github.com/myeongjae-kim/nodejs-tutorial/issues)로 올려주시면 좋습니다.
+- 작동하는 코드: [https://github.com/myeongjae-kim/nodejs-tutorial-example](https://github.com/myeongjae-kim/nodejs-tutorial-example)
+
+## 참고자료
+
+- [로버트 C. 마틴, 송준의. _클린 아키텍처_. 서울: 인사이트, 2019](http://ebook.insightbook.co.kr/book/69)
+- [조영호. _오브젝트_. 파주: 위키북스, 2019](https://wikibook.co.kr/object/)
+- [앨리스테어 코어번, _육각형 아키텍처_, 2005](https://web.archive.org/web/20060711221010/http://alistair.cockburn.us:80/index.php/Hexagonal_architecture#Use_Cases_And_The_Application_Boundary)
+- [톰 홈버그, 박소은. _만들면서 배우는 클린 아키텍처_. 파주: 위키북스, 2021](https://wikibook.co.kr/clean-architecture/)
+- [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js) - 기억보단 기록을](https://jojoldu.tistory.com/638)
+- [Konuklar, Tugce. _“Hexagonal (Ports & Adapters) Architecture”_. Idealo Tech Blog (blog), 2021년 4월 20일.](https://medium.com/idealo-tech-blog/hexagonal-ports-adapters-architecture-e3617bcf00a0#8ad5)
+- [Nilsson, Martin, and Nazife Korkmaz. “Practitioners’ View on Command Query Responsibility Segregation”, 2014.](http://lup.lub.lu.se/student-papers/record/4864802)
+- [(기록) 한 개의 메소드만 갖는 계층형 컨트롤러/서비스 패키지 스타일 - 기계인간 John Grib](https://johngrib.github.io/wiki/article/hierarchical-controller-package-structure/#단-하나의-메소드를-제공하는-클래스로-srp를-준수하자)
+- [Cahill, Michael J., Uwe Röhm and Alan D. Fekete. “Serializable isolation for snapshot databases”. ACM Transactions on Database Systems 34, 호 4 (2009년 12월 14일): 20:1-20:42. ](https://doi.org/10.1145/1620585.1620587)
+- [“Serializable Transactions \| CockroachDB Docs”. 2022년 3월 18일에 접근함. https://www.cockroachlabs.com/docs/stable/demo-serializable.html.](https://www.cockroachlabs.com/docs/stable/demo-serializable.html)
+- [Martin Fowler, “P of EAA: Data Transfer Object”. 2022년 3월 19일에 접근함.](https://martinfowler.com/eaaCatalog/dataTransferObject.html)
+- [Martin Fowler, “Inversion of Control Containers and the Dependency Injection pattern”. 2022년 3월 19일에 접근함.](https://martinfowler.com/articles/injection.html)
+- [카일 심슨, 이일웅. _You Don’t Know JS: this와 객체 프로토타입, 비동기와 성능_. 서울: 한빛미디어, 2017.](https://www.hanbit.co.kr/store/books/look.php?p_code=B7156943021)
+- [창시자 앨런 케이가 말하는, 객체 지향 프로그래밍의 본질](https://velog.io/@eddy_song/alan-kay-OOP)
+- [DTO 대신 Data Carrier - 이일민(토비)](https://www.facebook.com/tobyilee/posts/10222914608868299)
+- [현실 세상의 TDD - 이규원](https://gyuwon.github.io/blog/2019/07/22/tdd-in-real-world.html)
+- [에릭 에반스, 이대엽. _도메인 주도 설계_. 파주: 위키북스, 2011](https://wikibook.co.kr/domain-driven-design/)
+- ['Rush로 프론트엔드 모노레포 도입기' - 정성대 \| 밀당 팀블로그](https://medium.com/mildang/rush로-프론트엔드-모노레포-도입기-5da0c5bc9b30)
+- [Phantom dependencies \| Rush](https://rushjs.io/pages/advanced/phantom_deps/)
+- [Should you Pin your JavaScript Dependencies? \| Renovate Docs](https://docs.renovatebot.com/dependency-pinning/)
 
 ## License
 
