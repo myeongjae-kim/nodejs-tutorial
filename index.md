@@ -97,7 +97,7 @@ layout: home
 - [Nilsson, Martin, and Nazife Korkmaz. “Practitioners’ View on Command Query Responsibility Segregation”, 2014.](http://lup.lub.lu.se/student-papers/record/4864802)
 - [(기록) 한 개의 메소드만 갖는 계층형 컨트롤러/서비스 패키지 스타일 - 기계인간 John Grib](https://johngrib.github.io/wiki/article/hierarchical-controller-package-structure/#단-하나의-메소드를-제공하는-클래스로-srp를-준수하자)
 - [Cahill, Michael J., Uwe Röhm and Alan D. Fekete. “Serializable isolation for snapshot databases”. ACM Transactions on Database Systems 34, 호 4 (2009년 12월 14일): 20:1-20:42. ](https://doi.org/10.1145/1620585.1620587)
-- [“Serializable Transactions \| CockroachDB Docs”. 2022년 3월 18일에 접근함. https://www.cockroachlabs.com/docs/stable/demo-serializable.html.](https://www.cockroachlabs.com/docs/stable/demo-serializable.html)
+- [“Serializable Transactions \| CockroachDB Docs”. 2022년 3월 18일에 접근함.](https://www.cockroachlabs.com/docs/stable/demo-serializable.html)
 - [Martin Fowler, “P of EAA: Data Transfer Object”. 2022년 3월 19일에 접근함.](https://martinfowler.com/eaaCatalog/dataTransferObject.html)
 - [Martin Fowler, “Inversion of Control Containers and the Dependency Injection pattern”. 2022년 3월 19일에 접근함.](https://martinfowler.com/articles/injection.html)
 - [카일 심슨, 이일웅. _You Don’t Know JS: this와 객체 프로토타입, 비동기와 성능_. 서울: 한빛미디어, 2017.](https://www.hanbit.co.kr/store/books/look.php?p_code=B7156943021)
