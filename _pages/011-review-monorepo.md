@@ -1,5 +1,5 @@
 ---
-title: (작성중) 11. 모노레포 되돌아보기
+title: (작성예정) 11. 모노레포 되돌아보기
 author: Myeongjae Kim
 date: 2022-04-07
 category: Tutorial

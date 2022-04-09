@@ -1,10 +1,10 @@
 # Configurations
-title:            Node.js Tutorial with Clean Architecture
-longtitle:        Node.js Tutorial with Clean Architecture using IoC Container
+title:            Node.js 모노레포 튜토리얼 (with 객체지향 프로그래밍)
+longtitle:        Node.js 모노레포 튜토리얼 (with 객체지향 프로그래밍 using InversifyJS, Rush, Heft)
 author:           Myeongjae Kim
 email:            dev@myeongjae.kim
 description: >
-  Node.js Tutorial with Clean Architecture using IoC Container: Role, Responsibility and Collaboration of Objects, Dependency Management, What is Domain, Implementing Inversion of Control Container, InversifyJS, React, TypeScript, Express, React-Native
+  Node.js Monorepo Tutorial with Clean Architecture using IoC Container: Role, Responsibility and Collaboration of Objects, Dependency Management, What is Domain, Implementing Inversion of Control Container, InversifyJS, React, TypeScript, Express, React-Native
 
 version:          1.0
 gitbook_version:  3.2.3
