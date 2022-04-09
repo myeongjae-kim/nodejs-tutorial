@@ -42,7 +42,7 @@ layout: home
 </div>
 
 2021년 8월에 정성대님이 작성한 ['Rush로 프론트엔드 모노레포 도입기'](https://medium.com/mildang/rush로-프론트엔드-모노레포-도입기-5da0c5bc9b30)에
-'Lerna + Yarn workspace는 어플리케이션 개발보다는 오픈소스에 더 유용하다'라고 말씀하신 부분이 있습니다. 저도 여기에 동감하는 바이고, Rush는
+*'Lerna + Yarn workspace는 어플리케이션 개발보다는 오픈소스에 더 유용하다'*고 말씀하신 부분이 있습니다. 저도 여기에 동감하는 바이고, Rush는
 마이크로소프트 Share Point 팀에서 수백 개의 NPM 패키지를 관리하면서(Rush was created by the platform team for
 [Microsoft SharePoint](http://aka.ms/spfx). We build hundreds of production NPM packages every day,
 [https://rushjs.io/pages/intro/welcome/](https://rushjs.io/pages/intro/welcome/)) 탄생한 도구이기 때문에 예제 프로젝트를 만들어보면서
