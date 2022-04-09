@@ -98,6 +98,7 @@ layout: home
 - [조영호. _오브젝트_. 파주: 위키북스, 2019](https://wikibook.co.kr/object/)
 - [앨리스테어 코어번, _육각형 아키텍처_, 2005](https://web.archive.org/web/20060711221010/http://alistair.cockburn.us:80/index.php/Hexagonal_architecture#Use_Cases_And_The_Application_Boundary)
 - [톰 홈버그, 박소은. _만들면서 배우는 클린 아키텍처_. 파주: 위키북스, 2021](https://wikibook.co.kr/clean-architecture/)
+- [멀티모듈 설계 이야기 with Spring, Gradle - 권용근 \| 우아한형제들 기술블로그](https://techblog.woowahan.com/2637/)
 - [jest.mock 보다 ts-mockito 사용하기 (feat. Node.js) - 기억보단 기록을](https://jojoldu.tistory.com/638)
 - [Konuklar, Tugce. _“Hexagonal (Ports & Adapters) Architecture”_. Idealo Tech Blog (blog), 2021년 4월 20일.](https://medium.com/idealo-tech-blog/hexagonal-ports-adapters-architecture-e3617bcf00a0#8ad5)
 - [Nilsson, Martin, and Nazife Korkmaz. “Practitioners’ View on Command Query Responsibility Segregation”, 2014.](http://lup.lub.lu.se/student-papers/record/4864802)
