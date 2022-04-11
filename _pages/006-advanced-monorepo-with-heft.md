@@ -79,7 +79,7 @@ x) 종료
 3. `typescript`로 컴파일
 
 하는 것입니다. 운이 좋게 2번과 3번은 Heft가 알아서 해주지만, `prettier`는 추가로 설정해서 `heft build` 과정에 집어넣어야 합니다. 그리고 위 3개의
-과정과 관련된 모든 설정파일도 여전히 패키지별로 존재하고 있습니다. 일단
+과정과 관련된 모든 설정파일도 여전히 프로젝트별로 존재하고 있습니다. 일단
 [메뉴얼을 따라서 `package.json`의 `build` 스크립트에서 `heft build --clean`을 실행하도록 변경](https://rushstack.io/pages/heft_tutorials/heft_and_rush/#how-heft-gets-invoked)합니다.
 
 ```json-doc
@@ -122,8 +122,8 @@ Heft로 빌드를 수행하더라도 빌드 결과물이 제대로 나옵니다.
 
 ### rig package로 `tsconfig.json` 중복 없애기
 
-Heft는 ['rig packages'라는 설정용 패키지를 도입](https://rushstack.io/pages/heft_tutorials/heft_and_rush/#sharing-configuration-using-rig-packages)해서 설정 파일의 중복을 없앱니다.
-`tsconfig.json`이나 `.eslintrc`같이 IDE에서 사용해야 하는 설정파일의 경우는 개별 패키지 디렉토리에서 이 파일들을 완전히 없앨 수는 없지만,
+Heft는 ['rig packages'라는 설정용 프로젝트를 도입](https://rushstack.io/pages/heft_tutorials/heft_and_rush/#sharing-configuration-using-rig-packages)해서 설정 파일의 중복을 없앱니다.
+`tsconfig.json`이나 `.eslintrc`같이 IDE에서 사용해야 하는 설정파일의 경우는 개별 프로젝트 디렉토리에서 이 파일들을 완전히 없앨 수는 없지만,
 `jest.config.json`같은 경우는 'rig packages'를 도입해서 완전히 없앨 수 있습니다.
 
 `core-rig`라는 우리만의 rig package를 만들어서 사용해봅시다. `rig/core-rig`라는 디렉토리를 만들고 `rush.json`의 `projects` 속성에 추가합니다.
@@ -184,8 +184,8 @@ Heft는 ['rig packages'라는 설정용 패키지를 도입](https://rushstack.i
 Rush update finished successfully. (1.82 seconds)
 ```
 
-우리는 이전에 `domain/board-domain` 패키지를 추가하면서 `tsconfig.json`에 `declaration`과 `declarationMap` 옵션을 켜주었습니다.
-`tsconfig.json` 옵션을 `rig/core-rig` 패키지로 옮기더라도 `domain/board-domain`빌드 결과물에 `.d.ts`와 `.d.ts.map`이 생성된다면
+우리는 이전에 `domain/board-domain` 프로젝트를 추가하면서 `tsconfig.json`에 `declaration`과 `declarationMap` 옵션을 켜주었습니다.
+`tsconfig.json` 옵션을 `rig/core-rig` 프로젝트로 옮기더라도 `domain/board-domain`빌드 결과물에 `.d.ts`와 `.d.ts.map`이 생성된다면
 `tsconfig.json` 설정이 잘 적용됐다는 것을 증명할 수 있습니다.
 
 `doamin/board-domain`으로 이동해서 `core-rig` 의존성을 추가합니다.
@@ -278,7 +278,7 @@ rush build (7.94 seconds)
 ```
 
 이번에도 실패합니다. rig package 설정까지는 잘 된 것 같은데 `app/board-cli`를 컴파일 할 때 `domain/board-domain`의 코드를 찾지 못합니다.
-디렉토리를 확인해보니 `domain/board-domain/dist`가 생성되어 있지 않습니다. `domain/board-domain` 패키지의 빌드는 성공했는데 빌드 결과물은
+디렉토리를 확인해보니 `domain/board-domain/dist`가 생성되어 있지 않습니다. `domain/board-domain` 프로젝트의 빌드는 성공했는데 빌드 결과물은
 어디에 있는걸까요? 두구두구... `rig/core-rig/profiles/default/dist`에 있습니다.
 
 `rig/core-rig/profiles/default/tsconfig.json`에 `"outDir": "./dist"`로 옵션이 들어가있어서 이를 상속하는
@@ -488,7 +488,7 @@ Rush Multi-Project Build Tool 5.64.0 - Node.js 14.19.1 (LTS)
 > \- [Using rig packages \| Rush Stack](https://rushstack.io/pages/heft/rig_packages/#3-riggable-dependencies)
 
 `typescript`, `eslint`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`,  `eslint-config-prettier`
-이 5개의 의존성은 `app/board-cli`, `domain/board-domain`, `rig/core-rig` 3개의 패키지에서 모두 의존하고 있습니다. rig package에만
+이 5개의 의존성은 `app/board-cli`, `domain/board-domain`, `rig/core-rig` 3개의 프로젝트에서 모두 의존하고 있습니다. rig package에만
 남겨놔도 될 것 같으니 `app/board-cli`, `domain/board-domain`에서 위 의존성들을 제거합니다.
 
 `typescript`, `eslint`는 `rig/core-rig/package.json`에서 `devDependencies`가 아니라 `dependencies`에 있어야 합니다.
@@ -526,7 +526,7 @@ Rush Multi-Project Build Tool 5.64.0 - Node.js 14.19.1 (LTS)
 `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`는 `app/board-cli`와 `domain/board-domain`에서 직접 사용하는게
 아니라 `.eslintrc.js`에서 사용하기 때문에 이 둘은 `rig/core-rig/package.json`에만 남겨도 됩니다.
 
-pnpm때문에 문서에 나와있는 것과는 달리 `typescript`와 `eslint`를 rig package로 옮기진 못했지만 `@typescript-eslint/eslint-plugin`,
+PNPM때문에 문서에 나와있는 것과는 달리 `typescript`와 `eslint`를 rig package로 옮기진 못했지만 `@typescript-eslint/eslint-plugin`,
 `@typescript-eslint/parser`는 `rig/core-rig`에서만 의존하고 나머지 프로젝트에서는 제거했습니다. 뭔가 많이 바꿨으니 `rush update --full`을
 하고 빌드와 배포까지 잘 되는지 확인합니다.
 
@@ -1192,7 +1192,7 @@ caret(`^`)이나 tilde(`~`)를 사용하지 말고 정확한 버전을 지정하
     - `@rushstack/eslint-config/mixins/friendly-locals`
         - 로컬 변수에도 타입을 명시하도록 강제합니다.
     - `@rushstack/eslint-config/mixins/packlets`
-        - 모노레포의 패키지로 분리하지는 않으면서도 하나의 패키지 안에서 엄격한 `import` 정책을 설정하기 위해 사용합니다. [`@rushstack/eslint-plugin-packlets`](https://www.npmjs.com/package/@rushstack/eslint-plugin-packlets)를 참고하세요
+        - 모노레포의 프로젝트로 분리하지는 않으면서도 하나의 프로젝트 안에서 엄격한 `import` 정책을 설정하기 위해 사용합니다. [`@rushstack/eslint-plugin-packlets`](https://www.npmjs.com/package/@rushstack/eslint-plugin-packlets)를 참고하세요
     - `@rushstack/eslint-config/mixins/tsdoc`
         - 주석이 [TSDoc](https://github.com/Microsoft/tsdoc) 표준을 지키도록 강제합니다. [API Extractor](https://api-extractor.com/)같은 툴을 사용할 때 도움이 됩니다.
     - `@rushstack/eslint-config/mixins/react`
